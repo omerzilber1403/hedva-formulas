@@ -290,6 +290,11 @@
 
       const card = deck[idx];
       const cardStatus = statuses[card.id] || 'unmarked';
+      const allOptions = useMemo(() => {
+        if (!card.correct_answer && !card.wrong_answers?.length) return [];
+        const options = [card.correct_answer, ...(card.wrong_answers || [])].filter(Boolean);
+        return shuffle(options);
+      }, [card]);
 
       return (
         <div className="flex flex-col gap-5">
