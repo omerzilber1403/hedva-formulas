@@ -654,6 +654,17 @@
         !search || c.question.toLowerCase().includes(search.toLowerCase()) || c.correct_answer?.toLowerCase().includes(search.toLowerCase())
       );
 
+      // Show empty state if no cards at all
+      if (cards.length === 0) {
+        return (
+          <div className="flex flex-col items-center justify-center h-64 text-slate-400">
+            <div className="text-5xl mb-4">😴</div>
+            <p className="text-lg font-medium">אין שאלות בפילטר זה</p>
+            <p className="text-sm mt-2">שנה את הפילטר למעלה כדי לראות שאלות</p>
+          </div>
+        );
+      }
+
       return (
         <div className="flex flex-col gap-3">
           {/* Controls row */}
