@@ -364,10 +364,9 @@
 
     // ── TEST MODE ─────────────────────────────────────────────────────────────────
     const buildQuiz = (cards, allCards, count) => {
-      const allAnswers = allCards.map(c => c.correct_answer).filter(Boolean);
       return shuffle(cards).slice(0, Math.min(count, cards.length)).map(card => {
         const correct = card.correct_answer;
-        const wrongs = shuffle([...(card.wrong_answers || []), ...allAnswers.filter(a => a !== correct)]).slice(0, 3);
+        const wrongs = card.wrong_answers || [];
         return { id: card.id, question: card.question, correct, options: shuffle([correct, ...wrongs]) };
       });
     };
