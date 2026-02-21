@@ -98,22 +98,15 @@
       }
     }
 
-    .pop {
-      animation: pop 0.2s;
+    .answer-hidden {
+      filter: blur(6px);
+      user-select: none;
+      -webkit-user-select: none;
+      transition: filter 0.2s;
     }
 
-    @keyframes pop {
-      0% {
-        transform: scale(1)
-      }
-
-      50% {
-        transform: scale(1.06)
-      }
-
-      100% {
-        transform: scale(1)
-      }
+    .answer-hidden:active {
+      filter: blur(0);
     }
   </style>
 </head>
@@ -123,56 +116,140 @@
   <script type="text/babel">
     const { useState, useEffect, useCallback, useRef, useMemo } = React;
 
-    // ── Load data ──────────────────────────────────────────────────────────────
+    // ── Data ────────────────────────────────────────────────────────────────────
     const loadData = () => {
       const raw = window.__QUIZ_DATA__;
       if (!raw) return [];
-      return raw
-        .filter(q => q.question && (q.correct_answer || q.wrong_answers?.length))
+      return raw.filter(q => q.question && (q.correct_answer || q.wrong_answers?.length))
         .map(q => ({ ...q, status: 'unmarked' }));
     };
 
-    // ── Helpers ─────────────────────────────────────────────────────────────────
+    // ── Helpers ──────────────────────────────────────────────────────────────────
     const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
     const getStatusColor = s => ({ unmarked: 'bg-slate-400', red: 'bg-red-500', yellow: 'bg-amber-400', green: 'bg-green-500' }[s] || 'bg-slate-400');
     const getStatusBorder = s => ({ unmarked: 'border-slate-300', red: 'border-red-400', yellow: 'border-amber-400', green: 'border-green-400' }[s] || 'border-slate-300');
 
-    // ── Icons (inline SVG) ────────────────────────────────────────────────────
+    // ── User Profile Storage ─────────────────────────────────────────────────────
+    const USERS_KEY = 'quiz_users_v2';
+    const CURRENT_USER_KEY = 'quiz_current_user';
+    const loadUsers = () => { try { return JSON.parse(localStorage.getItem(USERS_KEY) || '{}'); } catch { return {}; } };
+    const saveUsers = data => localStorage.setItem(USERS_KEY, JSON.stringify(data));
+    const loadCurrent = () => localStorage.getItem(CURRENT_USER_KEY) || null;
+    const saveCurrent = name => localStorage.setItem(CURRENT_USER_KEY, name);
+    const clearCurrent = () => localStorage.removeItem(CURRENT_USER_KEY);
+    const getUserStatuses = (users, name) => users[name]?.statuses || {};
+    const setUserStatuses = (users, name, statuses) => ({ ...users, [name]: { ...users[name], name, statuses } });
+
+    // ── Icons ────────────────────────────────────────────────────────────────────
     const IconCards = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3" strokeWidth="2" /><line x1="8" y1="4" x2="8" y2="20" strokeWidth="2" /></svg>;
     const IconTest = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>;
     const IconList = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6" strokeWidth="2" /><line x1="8" y1="12" x2="21" y2="12" strokeWidth="2" /><line x1="8" y1="18" x2="21" y2="18" strokeWidth="2" /><line x1="3" y1="6" x2="3.01" y2="6" strokeWidth="2" strokeLinecap="round" /><line x1="3" y1="12" x2="3.01" y2="12" strokeWidth="2" strokeLinecap="round" /><line x1="3" y1="18" x2="3.01" y2="18" strokeWidth="2" strokeLinecap="round" /></svg>;
     const IconShuffle = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="2" d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5" /></svg>;
     const IconFlip = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>;
+    const IconUser = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="2" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" /></svg>;
 
-    // ── Status badge ───────────────────────────────────────────────────────────
-    const StatusDot = ({ status }) => (
-      <span className={`inline-block w-2.5 h-2.5 rounded-full ${getStatusColor(status)}`} />
-    );
+    const StatusDot = ({ status }) => <span className={`inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1 ${getStatusColor(status)}`} />;
 
-    // ── Filter tabs ─────────────────────────────────────────────────────────────
+    // ── Login Screen ─────────────────────────────────────────────────────────────
+    const LoginScreen = ({ onLogin }) => {
+      const [name, setName] = useState('');
+      const [users, setUsersState] = useState(() => loadUsers());
+      const existingNames = Object.keys(users);
+
+      const login = (n) => { if (!n.trim()) return; saveCurrent(n.trim()); onLogin(n.trim()); };
+      const deleteUser = (n) => {
+        if (!confirm(`מחק את המשתמש "${n}" וכל הנתונים שלו?`)) return;
+        const updated = { ...users };
+        delete updated[n];
+        saveUsers(updated);
+        setUsersState(updated);
+      };
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-600 to-indigo-700 flex flex-col items-center justify-center p-6">
+          <div className="w-full max-w-sm">
+            <div className="text-center mb-8">
+              <div className="text-6xl mb-3">🌿</div>
+              <h1 className="text-3xl font-black text-white">Sustainability</h1>
+              <p className="text-blue-200 mt-1">מי אתה?</p>
+            </div>
+
+            {/* Existing users */}
+            {existingNames.length > 0 && (
+              <div className="mb-6">
+                <p className="text-blue-200 text-sm font-semibold mb-3 text-center">בחר משתמש קיים</p>
+                <div className="flex flex-col gap-2">
+                  {existingNames.map(n => {
+                    const s = users[n]?.statuses || {};
+                    const red = Object.values(s).filter(v => v === 'red').length;
+                    const yellow = Object.values(s).filter(v => v === 'yellow').length;
+                    const green = Object.values(s).filter(v => v === 'green').length;
+                    return (
+                      <div key={n} className="flex items-center gap-2">
+                        <button onClick={() => login(n)}
+                          className="flex-1 bg-white/15 hover:bg-white/25 text-white rounded-2xl px-4 py-3 text-left font-bold transition-all active:scale-95 flex items-center justify-between">
+                          <span className="flex items-center gap-2"><IconUser />{n}</span>
+                          <span className="text-xs text-blue-200 flex gap-2">
+                            {red > 0 && <span>🔴{red}</span>}
+                            {yellow > 0 && <span>🟡{yellow}</span>}
+                            {green > 0 && <span>🟢{green}</span>}
+                          </span>
+                        </button>
+                        <button onClick={() => deleteUser(n)} className="text-white/40 hover:text-red-300 text-xl px-2 transition-colors">×</button>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center gap-3 my-5">
+                  <div className="flex-1 h-px bg-white/20" /><span className="text-blue-200 text-xs">או</span><div className="flex-1 h-px bg-white/20" />
+                </div>
+              </div>
+            )}
+
+            {/* New user */}
+            <div className="flex flex-col gap-3">
+              <p className="text-blue-200 text-sm font-semibold text-center">משתמש חדש</p>
+              <input
+                value={name} onChange={e => setName(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && login(name)}
+                placeholder="הכנס שם..."
+                className="w-full px-5 py-4 rounded-2xl text-slate-800 text-lg font-semibold outline-none shadow-lg text-right"
+                dir="auto"
+              />
+              <button onClick={() => login(name)} disabled={!name.trim()}
+                className="w-full py-4 rounded-2xl bg-white text-blue-600 font-black text-lg shadow-lg active:scale-95 transition-all disabled:opacity-40">
+                התחל ללמוד 🚀
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // ── Filter tabs ───────────────────────────────────────────────────────────────
     const FilterBar = ({ filter, setFilter, counts }) => {
       const tabs = [
-        { key: 'all', label: 'All', color: 'bg-blue-600 text-white', inactive: 'bg-white text-slate-600 border border-slate-200' },
-        { key: 'red', label: '🔴 Red', color: 'bg-red-500 text-white', inactive: 'bg-white text-red-500 border border-red-200' },
-        { key: 'yellow', label: '🟡 Yellow', color: 'bg-amber-400 text-white', inactive: 'bg-white text-amber-600 border border-amber-200' },
-        { key: 'green', label: '🟢 Know it', color: 'bg-green-500 text-white', inactive: 'bg-white text-green-600 border border-green-200' },
+        { key: 'all', label: 'הכל', emoji: '📚', color: 'bg-blue-600 text-white', inactive: 'bg-white text-slate-600 border border-slate-200' },
+        { key: 'red', label: 'אדום', emoji: '🔴', color: 'bg-red-500 text-white', inactive: 'bg-white text-red-500 border border-red-200' },
+        { key: 'yellow', label: 'צהוב', emoji: '🟡', color: 'bg-amber-400 text-white', inactive: 'bg-white text-amber-600 border border-amber-200' },
+        { key: 'green', label: 'ידוע', emoji: '🟢', color: 'bg-green-500 text-white', inactive: 'bg-white text-green-600 border border-green-200' },
       ];
       return (
         <div className="flex gap-2 overflow-x-auto pb-1 no-select">
           {tabs.map(t => (
             <button key={t.key} onClick={() => setFilter(t.key)}
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${filter === t.key ? t.color : t.inactive}`}>
-              {t.label} <span className="ml-1 opacity-75">({counts[t.key] ?? 0})</span>
+              {t.emoji} {t.label} <span className="ml-1 opacity-75">({counts[t.key] ?? 0})</span>
             </button>
           ))}
         </div>
       );
     };
 
-    // ── Confidence buttons ───────────────────────────────────────────────────────
+    // ── Confidence buttons ────────────────────────────────────────────────────────
     const ConfidenceButtons = ({ status, onSet }) => (
       <div className="flex gap-3 justify-center no-select">
-        {[['red', '🔴', 'Don\'t know'], ['yellow', '🟡', 'Almost'], ['green', '🟢', 'Got it']].map(([s, emoji, label]) => (
+        {[['red', '🔴', 'לא יודע'], ['yellow', '🟡', 'כמעט'], ['green', '🟢', 'יודע!']].map(([s, emoji, label]) => (
           <button key={s} onClick={() => onSet(s)}
             className={`flex-1 py-3 rounded-2xl text-sm font-bold transition-all active:scale-95 border-2 ${status === s
                 ? s === 'red' ? 'bg-red-500 text-white border-red-500 shadow-md' : s === 'yellow' ? 'bg-amber-400 text-white border-amber-400 shadow-md' : 'bg-green-500 text-white border-green-500 shadow-md'
@@ -185,36 +262,24 @@
       </div>
     );
 
-    // ── FLASHCARD MODE ──────────────────────────────────────────────────────────
+    // ── FLASHCARDS MODE ───────────────────────────────────────────────────────────
     const FlashcardsMode = ({ cards, statuses, setStatus }) => {
       const [idx, setIdx] = useState(0);
       const [flipped, setFlipped] = useState(false);
       const [shuffled, setShuffled] = useState(false);
       const [deck, setDeck] = useState(cards);
-      const [slideDir, setSlideDir] = useState('');
 
       useEffect(() => { setDeck(shuffled ? shuffle(cards) : cards); setIdx(0); setFlipped(false); }, [cards, shuffled]);
 
-      const go = (dir) => {
-        setFlipped(false);
-        setTimeout(() => {
-          setIdx(i => dir === 'next' ? Math.min(i + 1, deck.length - 1) : Math.max(i - 1, 0));
-        }, 120);
-      };
+      const go = dir => { setFlipped(false); setTimeout(() => setIdx(i => dir === 'next' ? Math.min(i + 1, deck.length - 1) : Math.max(i - 1, 0)), 120); };
 
-      if (!deck.length) return (
-        <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-          <div className="text-5xl mb-4">😴</div>
-          <p className="text-lg font-medium">No cards in this filter</p>
-        </div>
-      );
+      if (!deck.length) return <div className="flex flex-col items-center justify-center h-64 text-slate-400"><div className="text-5xl mb-4">😴</div><p className="text-lg font-medium">אין כרטיסים בפילטר זה</p></div>;
 
       const card = deck[idx];
       const cardStatus = statuses[card.id] || 'unmarked';
 
       return (
         <div className="flex flex-col gap-5">
-          {/* Progress */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
               <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${((idx + 1) / deck.length) * 100}%` }} />
@@ -226,22 +291,19 @@
             </button>
           </div>
 
-          {/* Card */}
           <div className="card-container w-full" style={{ height: 280 }}>
             <div className={`card-inner w-full h-full ${flipped ? 'flipped' : ''}`} onClick={() => setFlipped(f => !f)}>
-              {/* Front */}
               <div className={`card-face bg-white shadow-xl border-2 ${getStatusBorder(cardStatus)} flex flex-col items-center justify-center p-6 cursor-pointer`}>
-                <div className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-3">Question</div>
+                <div className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-3">שאלה</div>
                 <p className="text-center text-slate-800 font-semibold text-lg leading-snug">{card.question}</p>
-                <div className="absolute bottom-4 text-slate-300 text-xs flex items-center gap-1"><IconFlip /><span>tap to flip</span></div>
+                <div className="absolute bottom-4 text-slate-300 text-xs flex items-center gap-1"><IconFlip /><span>לחץ להפוך</span></div>
               </div>
-              {/* Back */}
-              <div className={`card-face card-back bg-blue-600 shadow-xl flex flex-col items-center justify-center p-6 cursor-pointer`}>
-                <div className="text-xs font-bold text-blue-200 uppercase tracking-widest mb-3">Answer</div>
-                <p className="text-center text-white font-semibold text-lg leading-snug">{card.correct_answer || '(no answer recorded)'}</p>
+              <div className="card-face card-back bg-blue-600 shadow-xl flex flex-col items-center justify-center p-6 cursor-pointer">
+                <div className="text-xs font-bold text-blue-200 uppercase tracking-widest mb-3">תשובה נכונה</div>
+                <p className="text-center text-white font-semibold text-lg leading-snug">{card.correct_answer || '(אין תשובה)'}</p>
                 {card.wrong_answers?.length > 0 && (
                   <div className="mt-4 w-full">
-                    <div className="text-xs text-blue-300 mb-1 font-medium">Other options:</div>
+                    <div className="text-xs text-blue-300 mb-1 font-medium">אפשרויות שגויות:</div>
                     {card.wrong_answers.slice(0, 3).map((a, i) => <div key={i} className="text-blue-200 text-xs leading-snug">• {a}</div>)}
                   </div>
                 )}
@@ -249,107 +311,102 @@
             </div>
           </div>
 
-          {/* Confidence */}
           <ConfidenceButtons status={cardStatus} onSet={s => setStatus(card.id, s)} />
 
-          {/* Navigation */}
           <div className="flex gap-3">
-            <button onClick={() => go('prev')} disabled={idx === 0}
-              className="flex-1 py-4 rounded-2xl font-bold text-slate-600 bg-white border border-slate-200 disabled:opacity-30 active:scale-95 transition-all text-lg">
-              ← Prev
-            </button>
-            <button onClick={() => go('next')} disabled={idx === deck.length - 1}
-              className="flex-1 py-4 rounded-2xl font-bold text-white bg-blue-600 disabled:opacity-30 active:scale-95 transition-all shadow-md text-lg">
-              Next →
-            </button>
+            <button onClick={() => go('prev')} disabled={idx === 0} className="flex-1 py-4 rounded-2xl font-bold text-slate-600 bg-white border border-slate-200 disabled:opacity-30 active:scale-95 transition-all text-lg">← הקודם</button>
+            <button onClick={() => go('next')} disabled={idx === deck.length - 1} className="flex-1 py-4 rounded-2xl font-bold text-white bg-blue-600 disabled:opacity-30 active:scale-95 transition-all shadow-md text-lg">הבא →</button>
           </div>
         </div>
       );
     };
 
-    // ── TEST MODE ──────────────────────────────────────────────────────────────
-    const buildQuiz = (cards, allCards) => {
+    // ── TEST MODE ─────────────────────────────────────────────────────────────────
+    const buildQuiz = (cards, allCards, count) => {
       const allAnswers = allCards.map(c => c.correct_answer).filter(Boolean);
-      return shuffle(cards).slice(0, Math.min(20, cards.length)).map(card => {
+      return shuffle(cards).slice(0, Math.min(count, cards.length)).map(card => {
         const correct = card.correct_answer;
-        const wrongs = shuffle(
-          [...(card.wrong_answers || []), ...allAnswers.filter(a => a !== correct)]
-        ).slice(0, 3);
-        const options = shuffle([correct, ...wrongs]);
-        return { id: card.id, question: card.question, correct, options };
+        const wrongs = shuffle([...(card.wrong_answers || []), ...allAnswers.filter(a => a !== correct)]).slice(0, 3);
+        return { id: card.id, question: card.question, correct, options: shuffle([correct, ...wrongs]) };
       });
     };
 
-    const TestMode = ({ cards, allCards }) => {
+    const TestMode = ({ cards, allCards, filter }) => {
       const [quiz, setQuiz] = useState(null);
       const [answers, setAnswers] = useState({});
       const [submitted, setSubmitted] = useState(false);
-      const [shakeId, setShakeId] = useState(null);
-
-      const startQuiz = () => {
-        setQuiz(buildQuiz(cards, allCards));
-        setAnswers({});
-        setSubmitted(false);
-      };
+      const [shakeSubmit, setShakeSubmit] = useState(false);
+      const [count, setCount] = useState(20);
 
       useEffect(() => { setQuiz(null); setAnswers({}); setSubmitted(false); }, [cards]);
 
-      const pick = (qid, opt) => {
-        if (submitted) return;
-        setAnswers(a => ({ ...a, [qid]: opt }));
-      };
-
+      const startQuiz = () => { setQuiz(buildQuiz(cards, allCards, count)); setAnswers({}); setSubmitted(false); };
+      const pick = (qid, opt) => { if (submitted) return; setAnswers(a => ({ ...a, [qid]: opt })); };
       const submit = () => {
-        const unanswered = quiz.filter(q => !answers[q.id]);
-        if (unanswered.length) { setShakeId('submit'); setTimeout(() => setShakeId(null), 500); return; }
-        setSubmitted(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (quiz.some(q => !answers[q.id])) { setShakeSubmit(true); setTimeout(() => setShakeSubmit(false), 500); return; }
+        setSubmitted(true); window.scrollTo({ top: 0, behavior: 'smooth' });
       };
 
       if (!cards.length) return (
         <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-          <div className="text-5xl mb-4">🚫</div><p>No cards in this filter</p>
+          <div className="text-5xl mb-4">🚫</div>
+          <p className="font-medium">אין כרטיסים בפילטר זה</p>
+          <p className="text-sm mt-1">שנה פילטר למעלה</p>
         </div>
       );
 
-      if (!quiz) return (
-        <div className="flex flex-col items-center gap-6 py-10">
-          <div className="text-6xl">📝</div>
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-slate-800">Test Mode</h2>
-            <p className="text-slate-500 mt-1">{Math.min(20, cards.length)} questions from {cards.length} cards</p>
+      if (!quiz) {
+        const filterLabel = { all: 'כל השאלות', red: '🔴 שאלות אדומות', yellow: '🟡 שאלות צהובות', green: '🟢 שאלות ירוקות' }[filter];
+        return (
+          <div className="flex flex-col items-center gap-5 py-8">
+            <div className="text-6xl">📝</div>
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-slate-800">מבחן</h2>
+              <p className="text-slate-500 mt-1">{filterLabel} • {cards.length} זמינות</p>
+            </div>
+            {/* Count selector */}
+            <div className="w-full bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+              <p className="text-slate-600 font-semibold text-sm mb-3 text-center">כמה שאלות?</p>
+              <div className="flex gap-2 flex-wrap justify-center">
+                {[10, 20, 30, 50, cards.length].filter((v, i, arr) => arr.indexOf(v) === i && v <= cards.length).map(n => (
+                  <button key={n} onClick={() => setCount(n)}
+                    className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${count === n ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                    {n === cards.length ? `כל (${n})` : n}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="w-full bg-amber-50 border border-amber-200 rounded-2xl p-3 text-sm text-amber-800">
+              💡 <strong>טיפ:</strong> שנה את הפילטר למעלה לתרגול ממוקד — למשל "🔴 אדום" למבחן רק על מה שלא ידעת
+            </div>
+            <button onClick={startQuiz} className="w-full py-4 rounded-2xl bg-blue-600 text-white font-black text-lg shadow-lg active:scale-95 transition-all">
+              התחל מבחן 🚀
+            </button>
           </div>
-          <button onClick={startQuiz} className="w-full max-w-xs py-4 rounded-2xl bg-blue-600 text-white font-bold text-lg shadow-lg active:scale-95 transition-all">
-            Start Test 🚀
-          </button>
-        </div>
-      );
+        );
+      }
 
       if (submitted) {
         const score = quiz.filter(q => answers[q.id] === q.correct).length;
         const pct = Math.round((score / quiz.length) * 100);
         const emoji = pct >= 80 ? '🎉' : pct >= 50 ? '💪' : '😅';
         return (
-          <div className="flex flex-col gap-5">
-            {/* Score card */}
+          <div className="flex flex-col gap-4">
             <div className={`rounded-2xl p-6 text-center text-white shadow-lg ${pct >= 80 ? 'bg-green-500' : pct >= 50 ? 'bg-amber-400' : 'bg-red-500'}`}>
               <div className="text-5xl mb-2">{emoji}</div>
               <div className="text-4xl font-black">{pct}%</div>
-              <div className="text-lg opacity-90">{score} / {quiz.length} correct</div>
+              <div className="text-lg opacity-90">{score} / {quiz.length} נכון</div>
             </div>
-            <button onClick={startQuiz} className="w-full py-4 rounded-2xl bg-blue-600 text-white font-bold text-lg shadow-md active:scale-95 transition-all">
-              Try Again 🔄
-            </button>
-            {/* Review */}
+            <button onClick={startQuiz} className="w-full py-4 rounded-2xl bg-blue-600 text-white font-bold text-lg shadow-md active:scale-95 transition-all">נסה שוב 🔄</button>
             <div className="flex flex-col gap-3">
               {quiz.map((q, i) => {
                 const correct = answers[q.id] === q.correct;
                 return (
                   <div key={q.id} className={`rounded-2xl p-4 border-2 ${correct ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'}`}>
-                    <div className="text-xs font-bold uppercase tracking-wide mb-1 text-slate-500">Q{i + 1}</div>
-                    <p className="font-semibold text-slate-800 text-sm mb-2">{q.question}</p>
-                    {!correct && <div className="text-red-600 text-sm mb-1">❌ Your answer: <span className="font-medium">{answers[q.id]}</span></div>}
-                    <div className="text-green-700 text-sm">✅ Correct: <span className="font-medium">{q.correct}</span></div>
+                    <div className="text-xs font-bold uppercase tracking-wide mb-1 text-slate-500">ש{i + 1}</div>
+                    <p className="font-semibold text-slate-800 text-sm mb-2 leading-snug">{q.question}</p>
+                    {!correct && <div className="text-red-600 text-sm mb-1">❌ ענית: <span className="font-medium">{answers[q.id]}</span></div>}
+                    <div className="text-green-700 text-sm">✅ נכון: <span className="font-medium">{q.correct}</span></div>
                   </div>
                 );
               })}
@@ -359,16 +416,22 @@
       }
 
       return (
-        <div className="flex flex-col gap-5">
-          <div className="text-sm text-slate-500 font-medium">{Object.keys(answers).length} / {quiz.length} answered</div>
+        <div className="flex flex-col gap-4">
+          {/* Progress */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${(Object.keys(answers).length / quiz.length) * 100}%` }} />
+            </div>
+            <span className="text-sm font-semibold text-slate-500 shrink-0">{Object.keys(answers).length}/{quiz.length}</span>
+          </div>
           {quiz.map((q, i) => (
             <div key={q.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
-              <div className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">Q{i + 1}</div>
-              <p className="font-semibold text-slate-800 mb-4 leading-snug">{q.question}</p>
+              <div className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">ש{i + 1}</div>
+              <p className="font-semibold text-slate-800 mb-4 leading-snug text-sm">{q.question}</p>
               <div className="flex flex-col gap-2">
                 {q.options.map((opt, j) => (
                   <button key={j} onClick={() => pick(q.id, opt)}
-                    className={`text-left px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all active:scale-95 ${answers[q.id] === opt ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 bg-slate-50 text-slate-700'
+                    className={`text-left px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all active:scale-95 leading-snug ${answers[q.id] === opt ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 bg-slate-50 text-slate-700'
                       }`}>
                     <span className="mr-2 font-bold text-slate-400">{String.fromCharCode(65 + j)}.</span>{opt}
                   </button>
@@ -376,91 +439,138 @@
               </div>
             </div>
           ))}
-          <button onClick={submit} id="submit-btn"
-            className={`w-full py-4 rounded-2xl font-bold text-lg transition-all active:scale-95 shadow-lg ${shakeId === 'submit' ? 'shake' : ''} bg-blue-600 text-white`}>
-            Submit Test ✓
+          <button onClick={submit} className={`w-full py-4 rounded-2xl font-bold text-lg transition-all active:scale-95 shadow-lg bg-blue-600 text-white ${shakeSubmit ? 'shake' : ''}`}>
+            הגש מבחן ✓
           </button>
         </div>
       );
     };
 
-    // ── CHEAT SHEET MODE ─────────────────────────────────────────────────────
-    const CheatSheetMode = ({ cards, statuses }) => {
+    // ── LIST MODE ─────────────────────────────────────────────────────────────────
+    const ListMode = ({ cards, statuses }) => {
       const [search, setSearch] = useState('');
-      const [hideAnswers, setHideAnswers] = useState(false);
-      const [revealedAnswers, setRevealedAnswers] = useState({});
+      const [hideCorrect, setHideCorrect] = useState(false);
+      const [revealed, setRevealed] = useState({});
+
+      // Reset revealed when toggling hide mode
+      const toggleHide = () => { setHideCorrect(h => !h); setRevealed({}); };
+      const revealCard = id => setRevealed(r => ({ ...r, [id]: true }));
 
       const filtered = cards.filter(c =>
         !search || c.question.toLowerCase().includes(search.toLowerCase()) || c.correct_answer?.toLowerCase().includes(search.toLowerCase())
       );
 
-      const toggleReveal = (cardId) => {
-        setRevealedAnswers(prev => ({ ...prev, [cardId]: !prev[cardId] }));
-      };
-
       return (
         <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Search..."
-              className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 outline-none focus:border-blue-400 transition-all" />
-            <button onClick={() => setHideAnswers(prev => !prev)}
-              className={`px-4 py-3 rounded-2xl font-bold text-sm transition-all ${hideAnswers ? 'bg-blue-600 text-white' : 'bg-white text-slate-500 border border-slate-200'}`}>
-              {hideAnswers ? 'Show Answers' : 'Hide Answers'}
+          {/* Controls row */}
+          <div className="flex gap-2">
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 חיפוש..."
+              className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 outline-none focus:border-blue-400 transition-all"
+              dir="auto" />
+            <button onClick={toggleHide}
+              className={`shrink-0 px-4 py-3 rounded-2xl font-bold text-sm transition-all border-2 active:scale-95 ${hideCorrect ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200'
+                }`}>
+              {hideCorrect ? '🙈 מוסתר' : '👁 גלוי'}
             </button>
           </div>
+
+          {hideCorrect && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-2 text-blue-700 text-xs font-medium">
+              💡 כל האפשרויות מוצגות — לחץ על "גלה" כדי לראות מה נכון
+            </div>
+          )}
+
           <div className="flex flex-col gap-3">
             {filtered.map(card => {
               const s = statuses[card.id] || 'unmarked';
-              const isAnswerHidden = hideAnswers && !revealedAnswers[card.id];
+              const isRevealed = revealed[card.id];
+              const allOptions = shuffle([...(card.wrong_answers || []), card.correct_answer].filter(Boolean));
+
               return (
                 <div key={card.id} className={`bg-white rounded-2xl p-4 shadow-sm border-l-4 status-${s}`}>
                   <div className="flex items-start gap-2">
                     <StatusDot status={s} />
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-slate-800 text-sm leading-snug">{card.question}</p>
-                      <div className="mt-2">
-                        {isAnswerHidden ? (
-                          <button onClick={() => toggleReveal(card.id)} className="text-blue-500 text-sm font-medium flex items-center gap-1">
-                            <IconFlip className="w-4 h-4" /> Tap to reveal answer
-                          </button>
-                        ) : (
-                          <>
-                            <p className="text-green-700 font-medium text-sm leading-snug">✅ {card.correct_answer || '—'}</p>
-                            {card.wrong_answers?.length > 0 && (
-                              <div className="mt-1.5">
-                                {card.wrong_answers.map((a, i) => <div key={i} className="text-red-400 text-xs leading-snug">✗ {a}</div>)}
+
+                      {hideCorrect && !isRevealed ? (
+                        /* Hidden mode: show all options without marking correct */
+                        <div className="mt-3">
+                          <div className="flex flex-col gap-1.5 mb-3">
+                            {allOptions.map((opt, i) => (
+                              <div key={i} className="flex items-start gap-2 text-sm text-slate-600 bg-slate-50 rounded-xl px-3 py-2">
+                                <span className="font-bold text-slate-400 shrink-0">{String.fromCharCode(65 + i)}.</span>
+                                <span className="leading-snug">{opt}</span>
                               </div>
-                            )}
-                          </>
-                        )}
-                      </div>
+                            ))}
+                          </div>
+                          <button onClick={() => revealCard(card.id)}
+                            className="w-full py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold active:scale-95 transition-all">
+                            גלה תשובה ✓
+                          </button>
+                        </div>
+                      ) : (
+                        /* Visible mode (or after reveal): mark correct/wrong */
+                        <div className="mt-2 flex flex-col gap-1">
+                          <div className="flex items-start gap-2 bg-green-50 rounded-xl px-3 py-2">
+                            <span className="text-green-500 shrink-0">✅</span>
+                            <span className="text-green-700 font-medium text-sm leading-snug">{card.correct_answer || '—'}</span>
+                          </div>
+                          {card.wrong_answers?.map((a, i) => (
+                            <div key={i} className="flex items-start gap-2 bg-red-50 rounded-xl px-3 py-2">
+                              <span className="text-red-400 shrink-0">✗</span>
+                              <span className="text-red-500 text-xs leading-snug">{a}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
               );
             })}
-            {!filtered.length && <div className="text-center text-slate-400 py-10">No results found</div>}
+            {!filtered.length && <div className="text-center text-slate-400 py-10">לא נמצאו תוצאות</div>}
           </div>
         </div>
       );
     };
 
-    // ── MAIN APP ───────────────────────────────────────────────────────────────
+    // ── MAIN APP ──────────────────────────────────────────────────────────────────
     const App = () => {
+      const [currentUser, setCurrentUser] = useState(() => loadCurrent());
+      const [users, setUsers] = useState(() => loadUsers());
       const [allCards] = useState(() => loadData());
-      const [statuses, setStatuses] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('quiz_statuses') || '{}'); } catch { return {}; }
-      });
       const [filter, setFilter] = useState('all');
       const [mode, setMode] = useState('flashcards');
 
+      // statuses for the current user
+      const statuses = currentUser ? getUserStatuses(users, currentUser) : {};
+
       const setStatus = useCallback((id, status) => {
-        setStatuses(prev => {
-          const next = { ...prev, [id]: status };
-          localStorage.setItem('quiz_statuses', JSON.stringify(next));
-          return next;
+        if (!currentUser) return;
+        setUsers(prev => {
+          const updated = setUserStatuses(prev, currentUser, { ...getUserStatuses(prev, currentUser), [id]: status });
+          saveUsers(updated);
+          return updated;
         });
-      }, []);
+      }, [currentUser]);
+
+      const handleLogin = name => { setCurrentUser(name); };
+      const handleLogout = () => {
+        clearCurrent();
+        setCurrentUser(null);
+        setFilter('all');
+        setMode('flashcards');
+      };
+
+      const resetUser = () => {
+        if (!confirm('איפוס כל הסימונים שלך?')) return;
+        setUsers(prev => {
+          const updated = setUserStatuses(prev, currentUser, {});
+          saveUsers(updated);
+          return updated;
+        });
+      };
 
       const counts = useMemo(() => ({
         all: allCards.length,
@@ -474,36 +584,38 @@
         return allCards.filter(c => (statuses[c.id] || 'unmarked') === filter);
       }, [allCards, statuses, filter]);
 
-      const resetAll = () => {
-        if (!confirm('Reset all confidence levels?')) return;
-        setStatuses({});
-        localStorage.removeItem('quiz_statuses');
-      };
+      if (!currentUser) return <LoginScreen onLogin={handleLogin} />;
 
       const tabs = [
-        { key: 'flashcards', label: 'Cards', icon: <IconCards /> },
-        { key: 'test', label: 'Test', icon: <IconTest /> },
-        { key: 'cheatsheet', label: 'List', icon: <IconList /> },
+        { key: 'flashcards', label: 'כרטיסים', icon: <IconCards /> },
+        { key: 'test', label: 'מבחן', icon: <IconTest /> },
+        { key: 'list', label: 'רשימה', icon: <IconList /> },
       ];
 
       return (
         <div className="min-h-screen bg-gradient-to-br from-slate-100 to-blue-50">
           {/* Header */}
-          <div className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-slate-100 shadow-sm">
-            <div className="max-w-lg mx-auto px-4 pt-4 pb-3 flex flex-col gap-3">
+          <div className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-100 shadow-sm">
+            <div className="max-w-lg mx-auto px-4 pt-3 pb-3 flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-xl font-black text-slate-800">🌿 Sustainability</h1>
-                  <p className="text-xs text-slate-400">{allCards.length} questions</p>
+                  <p className="text-xs text-slate-400">{allCards.length} שאלות</p>
                 </div>
-                <button onClick={resetAll} className="text-xs text-slate-400 bg-slate-100 px-3 py-1.5 rounded-xl">Reset</button>
+                <div className="flex items-center gap-2">
+                  <button onClick={handleLogout}
+                    className="flex items-center gap-1.5 text-xs text-slate-500 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition-all font-semibold">
+                    <IconUser />{currentUser}
+                  </button>
+                  <button onClick={resetUser} className="text-xs text-slate-400 bg-slate-100 px-3 py-1.5 rounded-xl">איפוס</button>
+                </div>
               </div>
               <FilterBar filter={filter} setFilter={setFilter} counts={counts} />
             </div>
           </div>
 
-          {/* Mode tabs */}
           <div className="max-w-lg mx-auto px-4 pt-4">
+            {/* Mode tabs */}
             <div className="flex bg-white rounded-2xl p-1 shadow-sm border border-slate-100 mb-5">
               {tabs.map(t => (
                 <button key={t.key} onClick={() => setMode(t.key)}
@@ -514,11 +626,10 @@
               ))}
             </div>
 
-            {/* Content */}
             <div className="pb-10">
               {mode === 'flashcards' && <FlashcardsMode cards={filteredCards} statuses={statuses} setStatus={setStatus} />}
-              {mode === 'test' && <TestMode cards={filteredCards} allCards={allCards} />}
-              {mode === 'cheatsheet' && <CheatSheetMode cards={filteredCards} statuses={statuses} />}
+              {mode === 'test' && <TestMode cards={filteredCards} allCards={allCards} filter={filter} />}
+              {mode === 'list' && <ListMode cards={filteredCards} statuses={statuses} />}
             </div>
           </div>
         </div>
@@ -527,10 +638,7 @@
 
     ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
-  <script>
-    // Inject quiz data as global variable (loaded from JSON file)
-    window.__QUIZ_DATA__ = null; // will be replaced below
-  </script>
+  <script>window.__QUIZ_DATA__ = null;</script>
   <script src="quiz_data.js"></script>
 </body>
 
