@@ -590,6 +590,11 @@
       useEffect(() => {
         const handleScroll = () => {
           const currentScroll = window.scrollY;
+
+          // Prevent running on iOS rubber-band overscroll
+          if (currentScroll < 0) return;
+          if (currentScroll + window.innerHeight >= document.documentElement.scrollHeight) return;
+
           if (currentScroll > lastScroll.current && currentScroll > 50) {
             setShowNav(false);
           } else {
