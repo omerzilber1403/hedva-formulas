@@ -1,0 +1,8 @@
+{
+    "name": "study-app",
+    "version": "1.0.0",
+    "description": "Sustainability Study App",
+    "dependencies": {
+        "@netlify/blobs": "^7.3.0"
+    }
+}

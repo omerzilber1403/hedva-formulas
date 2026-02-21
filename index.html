@@ -140,6 +140,10 @@
     const getUserStatuses = (users, name) => users[name]?.statuses || {};
     const setUserStatuses = (users, name, statuses) => ({ ...users, [name]: { ...users[name], name, statuses } });
 
+    // Cloud Sync Helpers
+    const syncCloudUsers = async () => { try { const r = await fetch('/api/users'); if (r.ok) return await r.json(); } catch (e) { } return null; };
+    const pushCloudUser = async (name, statuses) => { try { await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, statuses }) }); } catch (e) { } };
+
     // ── Icons ────────────────────────────────────────────────────────────────────
     const IconCards = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3" strokeWidth="2" /><line x1="8" y1="4" x2="8" y2="20" strokeWidth="2" /></svg>;
     const IconTest = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>;
@@ -154,6 +158,15 @@
     const LoginScreen = ({ onLogin }) => {
       const [name, setName] = useState('');
       const [users, setUsersState] = useState(() => loadUsers());
+
+      useEffect(() => {
+        syncCloudUsers().then(cloud => {
+          if (cloud && Object.keys(cloud).length > 0) {
+            setUsersState(prev => { const m = { ...prev, ...cloud }; saveUsers(m); return m; });
+          }
+        });
+      }, []);
+
       const existingNames = Object.keys(users);
 
       const login = (n) => { if (!n.trim()) return; saveCurrent(n.trim()); onLogin(n.trim()); };
@@ -547,14 +560,24 @@
       const [filter, setFilter] = useState('all');
       const [mode, setMode] = useState('flashcards');
 
+      useEffect(() => {
+        syncCloudUsers().then(cloud => {
+          if (cloud && Object.keys(cloud).length > 0) {
+            setUsers(prev => { const m = { ...prev, ...cloud }; saveUsers(m); return m; });
+          }
+        });
+      }, []);
+
       // statuses for the current user
       const statuses = currentUser ? getUserStatuses(users, currentUser) : {};
 
       const setStatus = useCallback((id, status) => {
         if (!currentUser) return;
         setUsers(prev => {
-          const updated = setUserStatuses(prev, currentUser, { ...getUserStatuses(prev, currentUser), [id]: status });
+          const newStatuses = { ...getUserStatuses(prev, currentUser), [id]: status };
+          const updated = setUserStatuses(prev, currentUser, newStatuses);
           saveUsers(updated);
+          pushCloudUser(currentUser, newStatuses);
           return updated;
         });
       }, [currentUser]);
@@ -572,6 +595,7 @@
         setUsers(prev => {
           const updated = setUserStatuses(prev, currentUser, {});
           saveUsers(updated);
+          pushCloudUser(currentUser, {});
           return updated;
         });
       };
