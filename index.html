@@ -308,6 +308,7 @@
         { key: 'red', label: 'אדום', emoji: '🔴', color: 'bg-red-500 text-white', inactive: 'bg-white text-red-500 border border-red-200' },
         { key: 'yellow', label: 'צהוב', emoji: '🟡', color: 'bg-amber-400 text-white', inactive: 'bg-white text-amber-600 border border-amber-200' },
         { key: 'green', label: 'ידוע', emoji: '🟢', color: 'bg-green-500 text-white', inactive: 'bg-white text-green-600 border border-green-200' },
+        { key: 'unmarked', label: 'לא מסומן', emoji: '⚪', color: 'bg-slate-600 text-white', inactive: 'bg-white text-slate-600 border border-slate-200' },
         { type: 'divider' },
         { key: 'ch1', label: 'פרק 1', emoji: '1️⃣', color: 'bg-purple-600 text-white', inactive: 'bg-white text-purple-600 border border-purple-200', chapter: '1' },
         { key: 'ch2', label: 'פרק 2', emoji: '2️⃣', color: 'bg-purple-600 text-white', inactive: 'bg-white text-purple-600 border border-purple-200', chapter: '2' },
@@ -838,6 +839,7 @@
         red: chapterFilteredCards.filter(c => statuses[c.id] === 'red').length,
         yellow: chapterFilteredCards.filter(c => statuses[c.id] === 'yellow').length,
         green: chapterFilteredCards.filter(c => statuses[c.id] === 'green').length,
+        unmarked: chapterFilteredCards.filter(c => !statuses[c.id] || statuses[c.id] === 'unmarked').length,
       }), [chapterFilteredCards, statuses]);
 
       // Counts for chapter filters (total in each chapter regardless of status)
