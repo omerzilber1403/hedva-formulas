@@ -321,14 +321,19 @@
         if (tab.key === 'all') {
           // "הכל" - reset everything
           setFilter('all');
-          setChapterFilter('all');
+          setChapterFilter([]);
         } else if (tab.chapter) {
-          // Chapter filter - toggle it
-          if (chapterFilter === tab.chapter) {
-            setChapterFilter('all');
-          } else {
-            setChapterFilter(tab.chapter);
-          }
+          // Chapter filter - toggle it (multi-select)
+          const chNum = parseInt(tab.chapter);
+          setChapterFilter(prev => {
+            if (prev.includes(chNum)) {
+              // Remove if already selected
+              return prev.filter(ch => ch !== chNum);
+            } else {
+              // Add if not selected
+              return [...prev, chNum].sort();
+            }
+          });
         } else {
           // Status filter - toggle it
           if (filter === tab.key) {
@@ -341,10 +346,10 @@
       
       const isActive = (tab) => {
         if (tab.key === 'all') {
-          return filter === 'all' && chapterFilter === 'all';
+          return filter === 'all' && chapterFilter.length === 0;
         }
         if (tab.chapter) {
-          return chapterFilter === tab.chapter;
+          return chapterFilter.includes(parseInt(tab.chapter));
         }
         return filter === tab.key;
       };
@@ -593,7 +598,12 @@
 
       if (!quiz) {
         const filterParts = [];
-        if (chapterFilter !== 'all') filterParts.push(`פרק ${chapterFilter}`);
+        if (chapterFilter.length > 0) {
+          const chapterText = chapterFilter.length === 1 
+            ? `פרק ${chapterFilter[0]}` 
+            : `פרקים ${chapterFilter.join(', ')}`;
+          filterParts.push(chapterText);
+        }
         if (filter === 'red') filterParts.push('🔴 אדומות');
         else if (filter === 'yellow') filterParts.push('🟡 צהובות');
         else if (filter === 'green') filterParts.push('🟢 ירוקות');
@@ -819,7 +829,7 @@
       const [users, setUsers] = useState(() => loadUsers());
       const [allCards] = useState(() => loadData());
       const [filter, setFilter] = useState('all');
-      const [chapterFilter, setChapterFilter] = useState('all');
+      const [chapterFilter, setChapterFilter] = useState([]);
       const [mode, setMode] = useState('flashcards');
 
       const [showNav, setShowNav] = useState(true);
@@ -864,7 +874,7 @@
         clearCurrent();
         setCurrentUser(null);
         setFilter('all');
-        setChapterFilter('all');
+        setChapterFilter([]);
         setMode('flashcards');
       };
 
@@ -880,8 +890,8 @@
 
       // Filter by chapter first
       const chapterFilteredCards = useMemo(() => {
-        if (chapterFilter === 'all') return allCards;
-        return allCards.filter(c => c.chapter === parseInt(chapterFilter));
+        if (chapterFilter.length === 0) return allCards;
+        return allCards.filter(c => chapterFilter.includes(c.chapter));
       }, [allCards, chapterFilter]);
 
       // Counts for status filters (based on current chapter filter)
@@ -928,7 +938,7 @@
                   <h1 className="text-xl font-black text-slate-800">🌿 Sustainability</h1>
                   <p className="text-xs text-slate-400">
                     {allCards.length} שאלות
-                    {(chapterFilter !== 'all' || filter !== 'all') && ` • ${filteredCards.length} מוצגות`}
+                    {(chapterFilter.length > 0 || filter !== 'all') && ` • ${filteredCards.length} מוצגות`}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
