@@ -426,7 +426,7 @@
       const allOptions = useMemo(() => {
         if (!card || (!card.correct_answer && !card.wrong_answers?.length)) return [];
         const options = [card.correct_answer, ...(card.wrong_answers || [])].filter(Boolean);
-        return options;
+        return shuffle(options);
       }, [card]);
 
       // Keyboard navigation
