@@ -10,7 +10,8 @@
 - 🎴 **Interactive Flashcards** - Learn with beautifully rendered LaTeX formulas
 - 📝 **Quiz Mode** - Test your knowledge with randomized questions
 - 📊 **Progress Tracking** - Monitor your performance with live statistics  
-- ☁️ **Cloud Sync** - Save your progress across devices with Netlify Blobs
+- ☁️ **Cloud Sync** - Save your progress across devices with Netlify Blobs  
+  → **[Test Cloud Sync](CLOUD_SYNC_TEST.md)** - Verify cross-device login works
 - 🏆 **High Score System** - Compete with friends and track personal bests
 - 🎯 **Status Markers** - Mark formulas as Red/Yellow/Green for focused study
 - � **Chapter Filtering** - Filter formulas by topic/chapter for focused study
