@@ -9,7 +9,7 @@
   
   <!-- PWA Manifest -->
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#667eea">
+  <meta name="theme-color" content="#3b82f6">
   
   <!-- iOS PWA Support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -25,7 +25,7 @@
   <link rel="shortcut icon" href="/icons/icon-72x72.png">
   
   <!-- MS Tile -->
-  <meta name="msapplication-TileColor" content="#667eea">
+  <meta name="msapplication-TileColor" content="#3b82f6">
   <meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
   
   <!-- Build: 2026-02-27-calculus-pwa -->
@@ -48,19 +48,64 @@
       box-sizing: border-box;
     }
 
+    :root {
+      /* Premium Color Palette */
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+      --primary-light: #60a5fa;
+      --success: #10b981;
+      --success-light: #34d399;
+      --warning: #f59e0b;
+      --warning-light: #fbbf24;
+      --danger: #ef4444;
+      --danger-light: #f87171;
+      
+      /* Sophisticated Backgrounds */
+      --bg-base: #f8fafc;
+      --bg-elevated: #ffffff;
+      --bg-glass: rgba(255, 255, 255, 0.7);
+      --bg-dark: #0f172a;
+      --bg-dark-elevated: #1e293b;
+      
+      /* Text Hierarchy */
+      --text-primary: #0f172a;
+      --text-secondary: #64748b;
+      --text-tertiary: #94a3b8;
+      
+      /* Borders & Dividers */
+      --border: #e2e8f0;
+      --border-medium: #cbd5e1;
+      
+      /* Premium Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      
+      /* Smooth Bezier Curves */
+      --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+      --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Helvetica Neue', sans-serif;
+      background: var(--bg-base);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
       overscroll-behavior: none;
+      color: var(--text-primary);
+      line-height: 1.6;
     }
 
     .card-container {
-      perspective: 1000px;
+      perspective: 1500px;
+      transform-style: preserve-3d;
     }
 
     .card-inner {
-      transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform 0.6s var(--ease-smooth);
       transform-style: preserve-3d;
       position: relative;
     }
@@ -83,19 +128,19 @@
     }
 
     .status-unmarked {
-      border-left: 4px solid #cbd5e1;
+      border-left: 4px solid var(--border);
     }
 
     .status-red {
-      border-left: 4px solid #ef4444;
+      border-left: 4px solid var(--danger);
     }
 
     .status-yellow {
-      border-left: 4px solid #f59e0b;
+      border-left: 4px solid var(--warning);
     }
 
     .status-green {
-      border-left: 4px solid #10b981;
+      border-left: 4px solid var(--success);
     }
 
     .no-select {
@@ -104,12 +149,21 @@
     }
 
     ::-webkit-scrollbar {
-      width: 6px;
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
     }
 
     ::-webkit-scrollbar-thumb {
-      background: #a78bfa;
+      background: var(--border);
       border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
     }
 
     .shake {
@@ -138,36 +192,80 @@
       }
     }
 
-    /* KaTeX styling */
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.05);
+        opacity: 0.9;
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -1000px 0;
+      }
+      100% {
+        background-position: 1000px 0;
+      }
+    }
+
+    /* KaTeX Premium Styling - PILLAR 1 */
     .katex-display {
       margin: 0;
       text-align: center;
+      font-size: 1.25rem;
     }
 
     .math-display {
-      padding: 1rem;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 0.75rem;
-      min-height: 3rem;
+      padding: 2rem; 
+      background: var(--bg-elevated);
+      border-radius: 1rem;
+      min-height: 5rem;
       display: flex;
       align-items: center;
       justify-content: center;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
     }
 
     .math-option {
       min-height: 3.5rem;
       display: flex;
       align-items: center;
-      padding: 0.75rem 1rem;
+      padding: 1rem 1.25rem;
     }
 
-    /* Gradient background */
+    /* Glassmorphism Glass Effect - PILLAR 2 */
+    .glass {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .glass-dark {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Modern card styles */
     .gradient-bg {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
     }
 
     .gradient-card {
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      box-shadow: var(--shadow-xl), 0 0 40px rgba(59, 130, 246, 0.3);
+    }
+
+    /* Safe area for iOS notch */
+    .safe-area-bottom {
+      padding-bottom: env(safe-area-inset-bottom);
     }
 
     /* Force LTR for LaTeX formulas while keeping Hebrew RTL */
@@ -309,6 +407,11 @@
     const IconShuffle = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="2" d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5" /></svg>;
     const IconFlip = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>;
     const IconUser = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="2" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" /></svg>;
+    const IconMenu = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" strokeWidth="2.5" strokeLinecap="round" /><line x1="3" y1="12" x2="21" y2="12" strokeWidth="2.5" strokeLinecap="round" /><line x1="3" y1="18" x2="21" y2="18" strokeWidth="2.5" strokeLinecap="round" /></svg>;
+    const IconClose = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" strokeWidth="2.5" strokeLinecap="round" /><line x1="6" y1="6" x2="18" y2="18" strokeWidth="2.5" strokeLinecap="round" /></svg>;
+    const IconLogout = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>;
+    const IconRefresh = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>;
+    const IconStats = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>;
 
     const StatusDot = ({ status }) => <span className={`inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1 ${getStatusColor(status)}`} />;
 
@@ -483,20 +586,30 @@
       };
 
       return (
-        <div className="min-h-screen gradient-bg flex flex-col items-center justify-center p-6">
-          <div className="w-full max-w-md">
-            <div className="text-center mb-8">
-              <div className="text-7xl mb-4">∫</div>
-              <h1 className="text-4xl font-black text-white mb-2">Calculus 2</h1>
-              <h2 className="text-2xl font-bold text-violet-200">Formulas Pro</h2>
-              <p className="text-violet-300 mt-2">למד 60+ נוסחאות חשובות</p>
+        <div className="min-h-screen gradient-bg flex flex-col items-center justify-center p-6 relative overflow-hidden">
+          {/* Animated Background Elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+          </div>
+          
+          <div className="w-full max-w-md relative z-10">
+            {/* Hero Section - PILLAR 1 Typography */}
+            <div className="text-center mb-10">
+              <div className="text-8xl mb-6 animate-pulse">∫</div>
+              <h1 className="text-5xl font-black text-white mb-3 tracking-tight">Calculus 2</h1>
+              <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-blue-400 mb-2">
+                Formulas Pro
+              </h2>
+              <p className="text-blue-300/90 text-lg mt-3 font-medium">למד 60+ נוסחאות חשובות</p>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-6 shadow-2xl border border-white/20">
+            {/* Premium Login Card - PILLAR 2 Glassmorphism */}
+            <div className="glass rounded-3xl p-8 shadow-2xl border-2 border-white/30 backdrop-blur-xl">
               {existingNames.length > 0 && !isCreating && (
-                <div className="mb-6">
-                  <p className="text-white/90 text-sm font-semibold mb-3 text-center">משתמשים קיימים</p>
-                  <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
+                <div className="mb-8">
+                  <p className="text-slate-700 text-sm font-bold mb-4 text-center">משתמשים קיימים</p>
+                  <div className="flex flex-col gap-3 max-h-56 overflow-y-auto pr-2">
                     {existingNames.map(n => {
                       const userData = users[n];
                       const s = userData?.statuses || {};
@@ -504,43 +617,49 @@
                       const highScore = userData?.highScore || 0;
                       return (
                         <button key={n} onClick={() => quickLogin(n)}
-                          className="flex items-center justify-between bg-white/15 hover:bg-white/25 text-white rounded-xl px-4 py-3 transition-all active:scale-95">
-                          <span className="flex items-center gap-2 font-bold">
-                            <IconUser />{n}
+                          className="group flex items-center justify-between bg-gradient-to-r from-slate-50 to-slate-100 hover:from-blue-50 hover:to-blue-100 text-slate-800 rounded-2xl px-5 py-4 transition-all duration-300 active:scale-98 shadow-md hover:shadow-lg border border-slate-200 hover:border-blue-300"
+                        >
+                          <span className="flex items-center gap-3 font-bold text-base">
+                            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                              <IconUser />
+                            </div>
+                            {n}
                           </span>
-                          <span className="text-xs text-violet-200 flex gap-2">
-                            {green > 0 && <span>🟢 {green}</span>}
-                            {highScore > 0 && <span>🏆 {highScore}%</span>}
+                          <span className="text-sm text-slate-600 flex gap-3 font-semibold">
+                            {green > 0 && <span className="bg-green-100 text-green-700 px-2 py-1 rounded-lg">🟢 {green}</span>}
+                            {highScore > 0 && <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-lg">🏆 {highScore}%</span>}
                           </span>
                         </button>
                       );
                     })}
                   </div>
-                  <div className="flex items-center gap-3 my-4">
-                    <div className="flex-1 h-px bg-white/20" />
-                    <span className="text-white/60 text-xs">או</span>
-                    <div className="flex-1 h-px bg-white/20" />
+                  <div className="flex items-center gap-4 my-6">
+                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
+                    <span className="text-slate-500 text-sm font-semibold">או</span>
+                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
                   </div>
                 </div>
               )}
 
-              <div className="flex flex-col gap-3">
-                <p className="text-white/90 text-sm font-semibold text-center">
+              <div className="flex flex-col gap-4">
+                <p className="text-slate-800 text-base font-bold text-center mb-2">
                   {isCreating ? 'יצירת חשבון חדש' : 'התחבר / צור חשבון'}
                 </p>
                 
+                {/* Error Message - PILLAR 3 Feedback */}
                 {error && (
-                  <div className="bg-red-500/20 border border-red-500/50 text-red-100 px-4 py-2 rounded-xl text-sm text-center">
+                  <div className="bg-red-50 border-2 border-red-200 text-red-700 px-5 py-3 rounded-2xl text-sm text-center font-semibold shadow-sm animate-shake">
                     {error}
                   </div>
                 )}
                 
+                {/* Input Fields - PILLAR 1 & 4 */}
                 <input
                   value={name}
                   onChange={e => { setName(e.target.value); setError(''); }}
                   onKeyDown={e => e.key === 'Enter' && handleLogin()}
                   placeholder="שם משתמש"
-                  className="w-full px-5 py-4 rounded-xl text-slate-800 text-lg font-semibold outline-none shadow-lg text-center bg-white"
+                  className="w-full px-6 py-5 rounded-2xl text-slate-800 text-lg font-semibold outline-none shadow-lg text-center bg-white border-2 border-slate-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all placeholder:text-slate-400"
                   dir="auto"
                 />
                 
@@ -550,21 +669,22 @@
                   onChange={e => { setPin(e.target.value); setError(''); }}
                   onKeyDown={e => e.key === 'Enter' && handleLogin()}
                   placeholder={isCreating ? "צור PIN (4+ ספרות)" : "PIN (אופציונלי)"}
-                  className="w-full px-5 py-4 rounded-xl text-slate-800 text-lg font-semibold outline-none shadow-lg text-center bg-white"
+                  className="w-full px-6 py-5 rounded-2xl text-slate-800 text-lg font-semibold outline-none shadow-lg text-center bg-white border-2 border-slate-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all placeholder:text-slate-400"
                   dir="ltr"
                 />
                 
+                {/* Primary CTA Button - PILLAR 3 Micro-interactions */}
                 <button 
                   onClick={handleLogin}
                   disabled={!name.trim()}
-                  className="w-full py-4 rounded-xl bg-white text-indigo-600 font-black text-lg shadow-lg active:scale-95 transition-all disabled:opacity-40"
+                  className="w-full py-5 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-black text-xl shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 active:scale-98 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-xl border-2 border-blue-400/50"
                 >
                   {isCreating ? '🚀 צור חשבון' : '▶️ התחבר'}
                 </button>
                 
                 <button
                   onClick={() => { setIsCreating(!isCreating); setError(''); }}
-                  className="text-white/70 hover:text-white text-sm transition-colors"
+                  className="text-slate-600 hover:text-blue-600 text-sm font-semibold transition-colors py-2"
                 >
                   {isCreating ? 'יש לך חשבון? התחבר' : 'אין לך חשבון? צור חדש'}
                 </button>
@@ -603,7 +723,7 @@
             onClick={() => setSelectedChapter('all')}
             className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border-2 ${
               selectedChapter === 'all'
-                ? 'bg-white text-indigo-600 border-white shadow-lg'
+                ? 'bg-white text-blue-600 border-white shadow-lg'
                 : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
             }`}
           >
@@ -617,7 +737,7 @@
                 onClick={() => setSelectedChapter(active ? 'all' : ch)}
                 className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border-2 whitespace-nowrap ${
                   active
-                    ? 'bg-white text-indigo-600 border-white shadow-lg'
+                    ? 'bg-white text-blue-600 border-white shadow-lg'
                     : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
                 }`}
               >
@@ -661,16 +781,16 @@
           <button 
             key={s} 
             onClick={() => onSet(s)}
-            className={`flex-1 py-3 rounded-2xl text-sm font-bold transition-all active:scale-95 border-2 ${
+            className={`group flex-1 py-4 rounded-2xl text-sm font-bold transition-all duration-300 active:scale-95 border-2 min-h-[64px] ${
               status === s
-                ? s === 'red' ? 'bg-red-500 text-white border-red-500 shadow-md' 
-                : s === 'yellow' ? 'bg-amber-400 text-white border-amber-400 shadow-md' 
-                : 'bg-emerald-500 text-white border-emerald-500 shadow-md'
-                : 'bg-white text-slate-600 border-slate-200'
+                ? s === 'red' ? 'bg-gradient-to-br from-red-500 to-red-600 text-white border-red-400 shadow-xl shadow-red-500/30 scale-105' 
+                : s === 'yellow' ? 'bg-gradient-to-br from-amber-400 to-amber-500 text-white border-amber-300 shadow-xl shadow-amber-500/30 scale-105' 
+                : 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-emerald-400 shadow-xl shadow-emerald-500/30 scale-105'
+                : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:shadow-lg'
             }`}
           >
-            <div className="text-xl">{emoji}</div>
-            <div className="text-xs">{label}</div>
+            <div className={`text-2xl mb-1 transition-transform ${status === s ? 'animate-pulse' : 'group-hover:scale-110'}`}>{emoji}</div>
+            <div className="text-xs font-black tracking-wide">{label}</div>
           </button>
         ))}
       </div>
@@ -738,14 +858,14 @@
           {/* Progress bar */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-2 bg-white/20 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-indigo-400 to-violet-500 rounded-full transition-all" 
+              <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all" 
                 style={{ width: `${((idx + 1) / deck.length) * 100}%` }} />
             </div>
             <span className="text-sm font-semibold text-white shrink-0">{idx + 1} / {deck.length}</span>
             <button 
               onClick={() => setShuffled(s => !s)}
               className={`p-2 rounded-xl border transition-all ${
-                shuffled ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-500 border-slate-200'
+                shuffled ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-500 border-slate-200'
               }`}
             >
               <IconShuffle />
@@ -782,43 +902,43 @@
               onTouchEnd={onTouchEnd}
             >
               <div className={`card-inner w-full h-full ${flipped ? 'flipped' : ''}`} onClick={() => setFlipped(f => !f)}>
-                {/* Front: Topic + Name */}
-                <div className={`card-face bg-white shadow-2xl border-2 ${getStatusBorder(cardStatus)} flex flex-col p-8 cursor-pointer`}>
+                {/* Front: Topic + Name - PREMIUM DESIGN */}
+                <div className={`card-face bg-gradient-to-br from-white via-slate-50 to-white shadow-2xl border-2 ${getStatusBorder(cardStatus)} flex flex-col p-10 cursor-pointer hover:shadow-3xl transition-shadow duration-300`}>
                   <div className="flex flex-col items-center justify-center w-full h-full">
-                    <div className="w-full mb-4 text-center">
-                      <div className="inline-block px-4 py-2 rounded-full bg-indigo-100 text-indigo-700 text-sm font-bold mb-6">
+                    <div className="w-full mb-8 text-center">
+                      <div className="inline-block px-5 py-2.5 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-black mb-8 shadow-lg shadow-blue-500/30">
                         {card.topic}
                       </div>
                     </div>
-                    <h2 className="text-center text-slate-800 font-black text-2xl md:text-3xl leading-snug mb-auto">
+                    <h2 className="text-center text-slate-900 font-black text-3xl md:text-4xl leading-tight mb-auto tracking-tight" style={{lineHeight: '1.4'}}>
                       {card.name}
                     </h2>
-                    <div className="pt-4 text-slate-400 text-xs flex justify-center items-center gap-2 w-full mt-auto">
+                    <div className="pt-6 text-slate-400 text-sm flex justify-center items-center gap-2.5 w-full mt-auto font-semibold">
                       <IconFlip />
                       <span>לחץ לראות נוסחה</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Back: Formula (KaTeX) */}
-                <div className="card-face card-back gradient-card shadow-2xl flex flex-col p-8 cursor-pointer">
+                {/* Back: Formula (KaTeX) - PREMIUM GRADIENT */}
+                <div className="card-face card-back gradient-card shadow-2xl flex flex-col p-10 cursor-pointer">
                   <div className="flex flex-col items-center justify-center w-full h-full">
-                    <div className="w-full mb-4 text-center">
-                      <div className="inline-block px-4 py-2 rounded-full bg-white/20 text-white text-sm font-bold mb-4">
+                    <div className="w-full mb-6 text-center">
+                      <div className="inline-block px-5 py-2.5 rounded-2xl bg-white/25 backdrop-blur-sm text-white text-sm font-black mb-6 shadow-lg border border-white/30">
                         {card.topic}
                       </div>
                     </div>
-                    <div className="text-center text-white/80 font-semibold text-lg mb-4">
+                    <div className="text-center text-white/90 font-bold text-xl mb-6 tracking-wide">
                       {card.name}
                     </div>
-                    <div className="w-full flex items-center justify-center my-auto">
+                    <div className="w-full flex items-center justify-center my-auto bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20 shadow-inner">
                       <MathDisplay 
                         latex={card.formula} 
                         displayMode={true} 
-                        className="text-white text-2xl md:text-3xl"
+                        className="text-white text-3xl md:text-4xl font-bold"
                       />
                     </div>
-                    <div className="pt-4 text-white/60 text-xs flex justify-center items-center gap-2 w-full mt-auto">
+                    <div className="pt-6 text-white/70 text-sm flex justify-center items-center gap-2.5 w-full mt-auto font-semibold">
                       <IconFlip />
                       <span>לחץ לחזור</span>
                     </div>
@@ -843,7 +963,7 @@
             <button 
               onClick={() => go('next')} 
               disabled={idx === deck.length - 1} 
-              className="flex-1 py-4 rounded-2xl font-bold text-white bg-indigo-600 disabled:opacity-30 active:scale-95 transition-all shadow-md text-lg"
+              className="flex-1 py-4 rounded-2xl font-bold text-white bg-blue-600 disabled:opacity-30 active:scale-95 transition-all shadow-md text-lg"
             >
               הבא →
             </button>
@@ -928,7 +1048,7 @@
             <div className="text-6xl">📝</div>
             <div className="text-center">
               <h2 className="text-2xl font-bold text-white">מבחן נוסחאות</h2>
-              <p className="text-violet-200 mt-1">{cards.length} נוסחאות זמינות</p>
+              <p className="text-blue-200 mt-1">{cards.length} נוסחאות זמינות</p>
             </div>
 
             {/* Stats */}
@@ -937,11 +1057,11 @@
                 <div className="flex justify-around">
                   <div className="text-center">
                     <div className="text-3xl font-black text-white">{userData.highScore || 0}%</div>
-                    <div className="text-xs text-violet-200">שיא אישי</div>
+                    <div className="text-xs text-blue-200">שיא אישי</div>
                   </div>
                   <div className="text-center">
                     <div className="text-3xl font-black text-white">{userData.quizzesTaken || 0}</div>
-                    <div className="text-xs text-violet-200">מבחנים</div>
+                    <div className="text-xs text-blue-200">מבחנים</div>
                   </div>
                 </div>
               </div>
@@ -958,7 +1078,7 @@
                     key={n} 
                     onClick={() => setCount(n)}
                     className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
-                      count === n ? 'bg-indigo-500 text-white' : 'bg-white/20 text-white'
+                      count === n ? 'bg-blue-500 text-white' : 'bg-white/20 text-white'
                     }`}
                   >
                     {n === cards.length ? `כל (${n})` : n}
@@ -969,7 +1089,7 @@
 
             <button 
               onClick={startQuiz} 
-              className="w-full py-4 rounded-2xl bg-white text-indigo-600 font-black text-lg shadow-lg active:scale-95 transition-all"
+              className="w-full py-4 rounded-2xl bg-white text-blue-600 font-black text-lg shadow-lg active:scale-95 transition-all"
             >
               התחל מבחן 🚀
             </button>
@@ -1002,7 +1122,7 @@
 
             <button 
               onClick={startQuiz} 
-              className="w-full py-4 rounded-2xl bg-white text-indigo-600 font-bold text-lg shadow-md active:scale-95 transition-all"
+              className="w-full py-4 rounded-2xl bg-white text-blue-600 font-bold text-lg shadow-md active:scale-95 transition-all"
             >
               נסה שוב 🔄
             </button>
@@ -1233,23 +1353,23 @@
       const userData = currentUser ? getUserData(users, currentUser) : { statuses: {}, highScore: 0, quizzesTaken: 0 };
       const statuses = userData.statuses || {};
 
-      // Topic to main category mapping (קיבוץ נושאים לפרקים גדולים)
+      // Topic to main category mapping - 3 קטגוריות מרכזיות בלבד
       const topicToCategory = useMemo(() => ({
         "אינטגרביליות וסכומי רימן": "אינטגרלים",
         "סדרות ואינטגרלים": "אינטגרלים",
         "אינטגרלים": "אינטגרלים",
         "אינטגרלים מוכללים": "אינטגרלים",
-        "אינטגרלים ושימושים": "שטחים ונפחים",
+        "אינטגרלים ושימושים": "אינטגרלים",
+        "אינטגרלים כפולים ומשולשים": "אינטגרלים",
+        "אינטגרלים קוויים": "אינטגרלים",
         "וקטורים": "גיאומטריה אנליטית",
         "ישרים ומישורים": "גיאומטריה אנליטית",
         "זווית ומרחקים": "גיאומטריה אנליטית",
         "היטלים": "גיאומטריה אנליטית",
-        "פונקציות סתומות": "פונקציות של מספר משתנים",
-        "פונקציות של מספר משתנים": "פונקציות של מספר משתנים",
-        "דיפרנציאביליות": "פונקציות של מספר משתנים",
-        "בעיות קיצון": "קיצון ומינימיזציה",
-        "אינטגרלים כפולים ומשולשים": "אינטגרלים כפולים ומשולשים",
-        "אינטגרלים קוויים": "אינטגרלים כפולים ומשולשים"
+        "פונקציות סתומות": "פונקציות רבות משתנים",
+        "פונקציות של מספר משתנים": "פונקציות רבות משתנים",
+        "דיפרנציאביליות": "פונקציות רבות משתנים",
+        "בעיות קיצון": "פונקציות רבות משתנים"
       }), []);
 
       // Extract main categories (קטגוריות גדולות בלבד)
@@ -1327,73 +1447,167 @@
       ];
 
       return (
-        <div className="min-h-screen gradient-bg">
-          {/* Header */}
-          <div className="fixed top-0 left-0 right-0 z-30 bg-indigo-900/95 backdrop-blur border-b border-white/10 shadow-lg">
-            <div className="max-w-lg md:max-w-3xl mx-auto px-4 py-3 flex flex-col gap-2.5">
+        <div className="min-h-screen gradient-bg relative">
+          {/* Premium Glassmorphism Header with Hamburger Menu */}
+          <div className="fixed top-0 left-0 right-0 z-30 glass-dark shadow-2xl">
+            <div className="max-w-lg md:max-w-3xl mx-auto px-5 py-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-xl font-black text-white flex items-center gap-2">
+                {/* Left: Menu Button */}
+                <button 
+                  className="p-2 text-white hover:bg-white/10 rounded-xl transition-all active:scale-95"
+                  onClick={() => {
+                    const menu = document.getElementById('sidebar-menu');
+                    menu.classList.toggle('translate-x-full');
+                  }}
+                >
+                  <IconMenu />
+                </button>
+                
+                {/* Center: Logo & Title */}
+                <div className="text-center flex-1">
+                  <h1 className="text-lg font-black text-white flex items-center justify-center gap-2">
                     <span className="text-2xl">∫</span> Calculus 2 Pro
                   </h1>
-                  <p className="text-xs text-violet-300">
-                    {selectedChapter === 'all' 
-                      ? `${allCards.length} נוסחאות` 
-                      : `${filteredCards.length} נוסחאות • ${selectedChapter}`
-                    } • {counts.green} נלמדו
-                    {syncing && <span className="ml-2">🔄</span>}
+                  <p className="text-xs text-blue-200/80">
+                    {counts.green}/{allCards.length} נלמדו
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={handleLogout}
-                    className="flex items-center gap-1.5 text-xs text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-xl transition-all font-semibold border border-white/20"
-                  >
-                    <IconUser />{currentUser}
-                  </button>
-                  <button 
-                    onClick={resetUser} 
-                    className="text-xs text-white/70 hover:text-white bg-white/10 px-3 py-1.5 rounded-xl transition-all border border-white/20"
-                  >
-                    איפוס
-                  </button>
+                
+                {/* Right: User Badge */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-white/10 rounded-xl border border-white/20">
+                  <IconUser />
+                  <span className="text-white text-sm font-semibold">{currentUser}</span>
                 </div>
               </div>
-              <CombinedFilterBar
-                filter={filter}
-                setFilter={setFilter}
-                counts={counts}
-                chapters={chapters}
-                selectedChapter={selectedChapter}
-                setSelectedChapter={setSelectedChapter}
-                allCards={allCards}
-                topicToCategory={topicToCategory}
-              />
+              
+              {/* Filter Bar */}
+              <div className="mt-4">
+                <CombinedFilterBar
+                  filter={filter}
+                  setFilter={setFilter}
+                  counts={counts}
+                  chapters={chapters}
+                  selectedChapter={selectedChapter}
+                  setSelectedChapter={setSelectedChapter}
+                  allCards={allCards}
+                  topicToCategory={topicToCategory}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="max-w-lg md:max-w-3xl mx-auto px-4 pt-40">
-            {/* Mode tabs */}
-            <div className="flex bg-white/10 backdrop-blur rounded-2xl p-1 shadow-lg border border-white/20 mb-5">
+          {/* Sidebar Menu Drawer */}
+          <div 
+            id="sidebar-menu"
+            className="fixed top-0 right-0 bottom-0 w-80 glass-dark shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-out overflow-y-auto"
+          >
+            <div className="p-6">
+              {/* Close Button */}
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-xl font-bold text-white">תפריט</h2>
+                <button 
+                  className="p-2 text-white hover:bg-white/10 rounded-xl transition-all"
+                  onClick={() => document.getElementById('sidebar-menu').classList.add('translate-x-full')}
+                >
+                  <IconClose />
+                </button>
+              </div>
+              
+              {/* User Stats Card */}
+              <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-400/30 rounded-2xl p-5 mb-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-white text-xl">
+                    <IconUser />
+                  </div>
+                  <div>
+                    <div className="text-white font-bold text-lg">{currentUser}</div>
+                    <div className="text-blue-200 text-sm">חשבון פעיל</div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-white/10 rounded-xl p-3 text-center">
+                    <div className="text-2xl font-black text-white">{counts.green}</div>
+                    <div className="text-xs text-blue-200">נלמדו</div>
+                  </div>
+                  <div className="bg-white/10 rounded-xl p-3 text-center">
+                    <div className="text-2xl font-black text-white">{userData.highScore || 0}%</div>
+                    <div className="text-xs text-blue-200">שיא</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Menu Items */}
+              <div className="space-y-2">
+                <button 
+                  onClick={() => {
+                    document.getElementById('sidebar-menu').classList.add('translate-x-full');
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-white hover:bg-white/10 rounded-xl transition-all text-right"
+                >
+                  <IconStats />
+                  <span className="font-semibold">סטטיסטיקות</span>
+                </button>
+                
+                <button 
+                  onClick={() => {
+                    resetUser();
+                    document.getElementById('sidebar-menu').classList.add('translate-x-full');
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-white hover:bg-white/10 rounded-xl transition-all text-right"
+                >
+                  <IconRefresh />
+                  <span className="font-semibold">איפוס התקדמות</span>
+                </button>
+                
+                <div className="h-px bg-white/20 my-4"></div>
+                
+                <button 
+                  onClick={() => {
+                    handleLogout();
+                    document.getElementById('sidebar-menu').classList.add('translate-x-full');
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-all text-right"
+                >
+                  <IconLogout />
+                  <span className="font-semibold">התנתק</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Overlay for menu */}
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 opacity-0 pointer-events-none transition-opacity"
+            id="menu-overlay"
+          ></div>
+
+          {/* Main Content with Bottom Nav Spacing */}
+          <div className="max-w-lg md:max-w-3xl mx-auto px-4 pt-36 pb-24">
+            <div>
+              {mode === 'flashcards' && <FlashcardsMode cards={filteredCards} statuses={statuses} setStatus={setStatus} />}
+              {mode === 'test' && <TestMode cards={filteredCards} userData={userData} updateUserData={updateUserData} />}
+              {mode === 'list' && <ListMode cards={filteredCards} statuses={statuses} />}
+            </div>
+          </div>
+
+          {/* Premium Bottom Navigation - PILLAR 4 Mobile First */}
+          <div className="fixed bottom-0 left-0 right-0 z-30 glass border-t border-white/20 safe-area-bottom">
+            <div className="max-w-lg md:max-w-3xl mx-auto flex justify-around py-3 px-4">
               {tabs.map(t => (
                 <button 
                   key={t.key} 
                   onClick={() => setMode(t.key)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex flex-col items-center justify-center gap-1 px-6 py-2 rounded-2xl transition-all min-w-[80px] min-h-[48px] ${
                     mode === t.key 
-                      ? 'bg-white text-indigo-600 shadow-md' 
-                      : 'text-white/70'
+                      ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105' 
+                      : 'text-gray-600 hover:bg-gray-100/50 active:scale-95'
                   }`}
                 >
-                  {t.icon}<span>{t.label}</span>
+                  <div className={mode === t.key ? 'scale-110' : ''}>{t.icon}</div>
+                  <span className="text-xs font-bold">{t.label}</span>
                 </button>
               ))}
-            </div>
-
-            <div className="pb-10">
-              {mode === 'flashcards' && <FlashcardsMode cards={filteredCards} statuses={statuses} setStatus={setStatus} />}
-              {mode === 'test' && <TestMode cards={filteredCards} userData={userData} updateUserData={updateUserData} />}
-              {mode === 'list' && <ListMode cards={filteredCards} statuses={statuses} />}
             </div>
           </div>
         </div>
@@ -1407,17 +1621,74 @@
   
   <!-- PWA Service Worker Registration & Install Prompt -->
   <script>
-    // Register Service Worker
+    // Register Service Worker with Update Detection
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
           .then((registration) => {
             console.log('✅ SW registered:', registration.scope);
+            
+            // Check for updates every hour
+            setInterval(() => {
+              registration.update();
+            }, 60 * 60 * 1000);
+
+            // Detect new service worker waiting
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // New service worker available - show update notification
+                  showUpdateNotification();
+                }
+              });
+            });
           })
           .catch((error) => {
             console.log('❌ SW registration failed:', error);
           });
+
+        // Listen for controller change (new SW activated)
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          window.location.reload();
+        });
       });
+    }
+
+    // Show Update Notification
+    function showUpdateNotification() {
+      const updateBanner = document.createElement('div');
+      updateBanner.innerHTML = `
+        <div style="position: fixed; top: 10px; left: 50%; transform: translateX(-50%); 
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+          color: white; padding: 12px 24px; border-radius: 12px; 
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 9999; 
+          display: flex; align-items: center; gap: 12px; font-family: system-ui, -apple-system, sans-serif;
+          animation: slideDown 0.3s ease-out;">
+          <span style="font-size: 20px;">🎉</span>
+          <span style="font-weight: 600; font-size: 14px;">גרסה חדשה זמינה!</span>
+          <button onclick="window.location.reload()" 
+            style="background: white; color: #667eea; border: none; 
+            padding: 6px 16px; border-radius: 8px; font-weight: 700; 
+            cursor: pointer; font-size: 13px; transition: transform 0.2s;"
+            onmouseover="this.style.transform='scale(1.05)'" 
+            onmouseout="this.style.transform='scale(1)'">
+            עדכן עכשיו
+          </button>
+          <button onclick="this.parentElement.remove()" 
+            style="background: transparent; color: white; border: none; 
+            font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1;">
+            ×
+          </button>
+        </div>
+        <style>
+          @keyframes slideDown {
+            from { transform: translateX(-50%) translateY(-100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+          }
+        </style>
+      `;
+      document.body.appendChild(updateBanner);
     }
 
     // PWA Install Prompt
