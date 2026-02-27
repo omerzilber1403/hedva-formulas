@@ -4,8 +4,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Calculus 2 Formulas Pro</title>
-  <!-- Build: 2026-02-27-calculus-v1 -->
+  <title>Hedva Formulas - חדו״א 2</title>
+  <meta name="description" content="אפליקציית לימוד נוסחאות חדו״א 2 עם כרטיסיות אינטראקטיביות ומבחנים">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#667eea">
+  
+  <!-- iOS PWA Support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Hedva Formulas">
+  <link rel="apple-touch-icon" href="/icons/icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-192x192.png">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-72x72.png">
+  <link rel="shortcut icon" href="/icons/icon-72x72.png">
+  
+  <!-- MS Tile -->
+  <meta name="msapplication-TileColor" content="#667eea">
+  <meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
+  
+  <!-- Build: 2026-02-27-calculus-pwa -->
   
   <!-- React & Babel -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -480,6 +503,51 @@
               </button>
             );
           })}
+        </div>
+      );
+    };
+
+    // ── Chapter Filter ──────────────────────────────────────────────────────────
+    const ChapterFilter = ({ chapters, selectedChapter, setSelectedChapter, allCards }) => {
+      const chapterCounts = useMemo(() => {
+        const counts = { all: allCards.length };
+        chapters.forEach(ch => {
+          counts[ch] = allCards.filter(c => c.topic === ch).length;
+        });
+        return counts;
+      }, [chapters, allCards]);
+
+      return (
+        <div className="space-y-2">
+          <div className="text-xs font-bold text-white/70 uppercase tracking-wider">📖 פרקים</div>
+          <div className="flex gap-2 overflow-x-auto pb-2 no-select">
+            <button
+              onClick={() => setSelectedChapter('all')}
+              className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-all border-2 ${
+                selectedChapter === 'all'
+                  ? 'bg-white text-indigo-600 border-white shadow-lg'
+                  : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+              }`}
+            >
+              📚 כל הנוסחאות ({chapterCounts.all})
+            </button>
+            {chapters.map(ch => {
+              const active = selectedChapter === ch;
+              return (
+                <button
+                  key={ch}
+                  onClick={() => setSelectedChapter(active ? 'all' : ch)}
+                  className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-all border-2 whitespace-nowrap ${
+                    active
+                      ? 'bg-white text-indigo-600 border-white shadow-lg'
+                      : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+                  }`}
+                >
+                  {ch} ({chapterCounts[ch] || 0})
+                </button>
+              );
+            })}
+          </div>
         </div>
       );
     };
@@ -1047,6 +1115,7 @@
       const [users, setUsers] = useState(() => loadUsers());
       const [allCards] = useState(() => loadData());
       const [filter, setFilter] = useState('all');
+      const [selectedChapter, setSelectedChapter] = useState('all');
       const [mode, setMode] = useState('flashcards');
       const [showNav, setShowNav] = useState(true);
       const [syncing, setSyncing] = useState(false);
@@ -1075,6 +1144,12 @@
       const userData = currentUser ? getUserData(users, currentUser) : { statuses: {}, highScore: 0, quizzesTaken: 0 };
       const statuses = userData.statuses || {};
 
+      // Extract unique chapters
+      const chapters = useMemo(() => {
+        const uniqueTopics = [...new Set(allCards.map(c => c.topic))].filter(Boolean);
+        return uniqueTopics.sort();
+      }, [allCards]);
+
       const setStatus = useCallback((id, status) => {
         if (!currentUser) return;
         setUsers(prev => {
@@ -1102,6 +1177,7 @@
         clearCurrent();
         setCurrentUser(null);
         setFilter('all');
+        setSelectedChapter('all');
         setMode('flashcards');
       };
 
@@ -1119,9 +1195,20 @@
       }), [allCards, statuses]);
 
       const filteredCards = useMemo(() => {
-        if (filter === 'all') return allCards;
-        return allCards.filter(c => (statuses[c.id] || 'unmarked') === filter);
-      }, [allCards, statuses, filter]);
+        let cards = allCards;
+        
+        // Filter by chapter first
+        if (selectedChapter !== 'all') {
+          cards = cards.filter(c => c.topic === selectedChapter);
+        }
+        
+        // Then filter by status
+        if (filter !== 'all') {
+          cards = cards.filter(c => (statuses[c.id] || 'unmarked') === filter);
+        }
+        
+        return cards;
+      }, [allCards, statuses, filter, selectedChapter]);
 
       if (!currentUser) return <LoginScreen onLogin={handleLogin} />;
 
@@ -1144,7 +1231,10 @@
                     <span className="text-2xl">∫</span> Calculus 2 Pro
                   </h1>
                   <p className="text-xs text-violet-300">
-                    {allCards.length} נוסחאות • {counts.green} נלמדו
+                    {selectedChapter === 'all' 
+                      ? `${allCards.length} נוסחאות` 
+                      : `${filteredCards.length} נוסחאות • ${selectedChapter}`
+                    } • {counts.green} נלמדו
                     {syncing && <span className="ml-2">🔄</span>}
                   </p>
                 </div>
@@ -1163,6 +1253,12 @@
                   </button>
                 </div>
               </div>
+              <ChapterFilter
+                chapters={chapters}
+                selectedChapter={selectedChapter}
+                setSelectedChapter={setSelectedChapter}
+                allCards={allCards}
+              />
               <FilterBar 
                 filter={filter} 
                 setFilter={setFilter} 
@@ -1204,6 +1300,127 @@
   </script>
   <script>window.__QUIZ_DATA__ = null;</script>
   <script src="quiz_data.js"></script>
+  
+  <!-- PWA Service Worker Registration & Install Prompt -->
+  <script>
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('✅ SW registered:', registration.scope);
+          })
+          .catch((error) => {
+            console.log('❌ SW registration failed:', error);
+          });
+      });
+    }
+
+    // PWA Install Prompt
+    let deferredPrompt;
+    const installButton = document.createElement('button');
+    installButton.textContent = '📱 התקן אפליקציה';
+    installButton.className = 'fixed bottom-4 left-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl shadow-lg font-bold text-sm z-50 hover:scale-105 transition-transform';
+    installButton.style.display = 'none';
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      
+      // Check if already installed
+      if (!window.matchMedia('(display-mode: standalone)').matches) {
+        installButton.style.display = 'block';
+        document.body.appendChild(installButton);
+      }
+    });
+
+    installButton.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        console.log('✅ User accepted PWA install');
+        installButton.style.display = 'none';
+      }
+      
+      deferredPrompt = null;
+    });
+
+    // Hide install button if already in standalone mode
+    if (window.matchMedia('(display-mode: standalone)').matches || 
+        window.navigator.standalone === true) {
+      console.log('✅ Running as installed PWA');
+    }
+
+    // iOS specific - Add to Home Screen hint
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone);
+    
+    if (isIOS && !isInStandaloneMode) {
+      // Show iOS install instructions after 3 seconds
+      setTimeout(() => {
+        const iosHint = document.createElement('div');
+        iosHint.innerHTML = `
+          <div style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
+                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                      color: white; padding: 15px 25px; border-radius: 15px; 
+                      box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 1000; 
+                      max-width: 90%; text-align: center; font-size: 14px;
+                      animation: slideUp 0.5s ease-out;">
+            <div style="font-weight: bold; margin-bottom: 8px;">💡 התקן על המכשיר</div>
+            <div style="font-size: 13px; opacity: 0.95;">
+              לחץ על <span style="font-size: 18px;">⎙</span> ובחר "הוסף למסך הבית"
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" 
+                    style="margin-top: 10px; background: white; color: #667eea; 
+                           border: none; padding: 8px 20px; border-radius: 8px; 
+                           font-weight: bold; cursor: pointer;">
+              הבנתי ✓
+            </button>
+          </div>
+        `;
+        document.body.appendChild(iosHint);
+        
+        // Auto-hide after 10 seconds
+        setTimeout(() => {
+          if (iosHint.parentElement) {
+            iosHint.remove();
+          }
+        }, 10000);
+      }, 3000);
+    }
+
+    // Persist user session in localStorage (for PWA standalone)
+    window.addEventListener('beforeunload', () => {
+      // User data is already being saved by the app's sync mechanism
+      console.log('💾 Session data persisted');
+    });
+
+    // Handle app updates
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        // New service worker activated, reload to get fresh content
+        if (confirm('יש עדכון חדש! לרענן את האפליקציה?')) {
+          window.location.reload();
+        }
+      });
+    }
+  </script>
+  
+  <style>
+    @keyframes slideUp {
+      from {
+        transform: translateX(-50%) translateY(100px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+    }
+  </style>
 </body>
 
 </html>

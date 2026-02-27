@@ -13,9 +13,24 @@
 - ☁️ **Cloud Sync** - Save your progress across devices with Netlify Blobs
 - 🏆 **High Score System** - Compete with friends and track personal bests
 - 🎯 **Status Markers** - Mark formulas as Red/Yellow/Green for focused study
-- 📱 **Mobile Responsive** - Works perfectly on all devices
+- � **Chapter Filtering** - Filter formulas by topic/chapter for focused study
+- 📱 **PWA Support** - Install as standalone app on iOS/Android
+- 💾 **Offline Mode** - Works without internet connection after first load
 - 🌐 **Hebrew + Math** - RTL Hebrew interface with LTR mathematical notation
 - ⚡ **Zero Build Required** - Pure client-side React with CDN imports
+
+## 📱 Install as Mobile App
+
+This app is a **Progressive Web App (PWA)** - you can install it on your phone like a native app!
+
+**📖 [Full Installation Guide →](INSTALL_GUIDE.md)**
+
+### Quick Install:
+- **iPhone**: Safari → Share button ⎙ → "Add to Home Screen"
+- **Android**: Chrome → Menu ⋮ → "Install app"
+- **Desktop**: Click the install icon in the address bar
+
+**Benefits**: Faster loading, offline access, full-screen experience
 
 ## 🚀 Quick Start
 
