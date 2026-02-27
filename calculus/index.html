@@ -606,14 +606,14 @@
     };
 
     // ── Chapter Filter ──────────────────────────────────────────────────────────
-    const ChapterFilter = ({ chapters, selectedChapter, setSelectedChapter, allCards }) => {
+    const ChapterFilter = ({ chapters, selectedChapter, setSelectedChapter, allCards, topicToCategory }) => {
       const chapterCounts = useMemo(() => {
         const counts = { all: allCards.length };
         chapters.forEach(ch => {
-          counts[ch] = allCards.filter(c => c.topic === ch).length;
+          counts[ch] = allCards.filter(c => (topicToCategory[c.topic] || c.topic) === ch).length;
         });
         return counts;
-      }, [chapters, allCards]);
+      }, [chapters, allCards, topicToCategory]);
 
       return (
         <div className="space-y-2">
@@ -1242,11 +1242,30 @@
       const userData = currentUser ? getUserData(users, currentUser) : { statuses: {}, highScore: 0, quizzesTaken: 0 };
       const statuses = userData.statuses || {};
 
-      // Extract unique chapters
+      // Topic to main category mapping (קיבוץ נושאים לפרקים גדולים)
+      const topicToCategory = useMemo(() => ({
+        "אינטגרביליות וסכומי רימן": "אינטגרלים",
+        "סדרות ואינטגרלים": "אינטגרלים",
+        "אינטגרלים": "אינטגרלים",
+        "אינטגרלים מוכללים": "אינטגרלים",
+        "אינטגרלים ושימושים": "שטחים ונפחים",
+        "וקטורים": "גיאומטריה אנליטית",
+        "ישרים ומישורים": "גיאומטריה אנליטית",
+        "זווית ומרחקים": "גיאומטריה אנליטית",
+        "היטלים": "גיאומטריה אנליטית",
+        "פונקציות סתומות": "פונקציות של מספר משתנים",
+        "פונקציות של מספר משתנים": "פונקציות של מספר משתנים",
+        "דיפרנציאביליות": "פונקציות של מספר משתנים",
+        "בעיות קיצון": "קיצון ומינימיזציה",
+        "אינטגרלים כפולים ומשולשים": "אינטגרלים כפולים ומשולשים",
+        "אינטגרלים קוויים": "אינטגרלים כפולים ומשולשים"
+      }), []);
+
+      // Extract main categories (קטגוריות גדולות בלבד)
       const chapters = useMemo(() => {
-        const uniqueTopics = [...new Set(allCards.map(c => c.topic))].filter(Boolean);
-        return uniqueTopics.sort();
-      }, [allCards]);
+        const mainCategories = [...new Set(allCards.map(c => topicToCategory[c.topic] || c.topic))].filter(Boolean);
+        return mainCategories.sort();
+      }, [allCards, topicToCategory]);
 
       const setStatus = useCallback((id, status) => {
         if (!currentUser) return;
@@ -1295,9 +1314,9 @@
       const filteredCards = useMemo(() => {
         let cards = allCards;
         
-        // Filter by chapter first
+        // Filter by main category first
         if (selectedChapter !== 'all') {
-          cards = cards.filter(c => c.topic === selectedChapter);
+          cards = cards.filter(c => (topicToCategory[c.topic] || c.topic) === selectedChapter);
         }
         
         // Then filter by status
@@ -1306,7 +1325,7 @@
         }
         
         return cards;
-      }, [allCards, statuses, filter, selectedChapter]);
+      }, [allCards, statuses, filter, selectedChapter, topicToCategory]);
 
       if (!currentUser) return <LoginScreen onLogin={handleLogin} />;
 
@@ -1356,6 +1375,7 @@
                 selectedChapter={selectedChapter}
                 setSelectedChapter={setSelectedChapter}
                 allCards={allCards}
+                topicToCategory={topicToCategory}
               />
               <FilterBar 
                 filter={filter} 
