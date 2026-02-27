@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎓 Study Portal - פורטל לימוד</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #8b5cf6 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    }
+
+    .card:active {
+      transform: translateY(-4px);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-in {
+      animation: fadeIn 0.6s ease-out forwards;
+    }
+
+    .delay-1 {
+      animation-delay: 0.1s;
+      opacity: 0;
+    }
+
+    .delay-2 {
+      animation-delay: 0.2s;
+      opacity: 0;
+    }
+
+    .delay-3 {
+      animation-delay: 0.3s;
+      opacity: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container mx-auto px-4 py-8 max-w-6xl">
+    
+    <!-- Header -->
+    <div class="text-center mb-12 animate-in">
+      <h1 class="text-5xl md:text-6xl font-bold text-white mb-4">
+        🎓 Study Portal
+      </h1>
+      <p class="text-xl md:text-2xl text-blue-100">
+        פורטל לימוד אינטראקטיבי - בחר את הקורס שלך
+      </p>
+    </div>
+
+    <!-- Course Cards -->
+    <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+      
+      <!-- Sustainability Course Card -->
+      <a href="/sustainability/index.html" class="card block bg-white rounded-2xl shadow-2xl overflow-hidden animate-in delay-1">
+        <div class="bg-gradient-to-br from-green-500 to-emerald-600 p-8 text-white">
+          <div class="text-6xl mb-4">🌱</div>
+          <h2 class="text-3xl font-bold mb-2">Sustainability</h2>
+          <p class="text-green-50 text-lg">קורס קיימות וסביבה</p>
+        </div>
+        <div class="p-8">
+          <div class="space-y-3 mb-6">
+            <div class="flex items-center text-gray-700">
+              <span class="text-2xl mr-3">📚</span>
+              <span class="text-lg">מאות שאלות על נושאי קיימות</span>
+            </div>
+            <div class="flex items-center text-gray-700">
+              <span class="text-2xl mr-3">🎯</span>
+              <span class="text-lg">מצבי לימוד: כרטיסיות, בחנים, רשימה</span>
+            </div>
+            <div class="flex items-center text-gray-700">
+              <span class="text-2xl mr-3">☁️</span>
+              <span class="text-lg">שמירת התקדמות בענן</span>
+            </div>
+            <div class="flex items-center text-gray-700">
+              <span class="text-2xl mr-3">📊</span>
+              <span class="text-lg">מעקב אחר ציונים וסטטיסטיקות</span>
+            </div>
+          </div>
+          <div class="bg-green-50 border-2 border-green-200 rounded-xl p-4 text-center">
+            <p class="text-green-800 font-bold text-lg">לחץ כאן להתחיל ללמוד →</p>
+          </div>
+        </div>
+      </a>
+
+      <!-- Calculus 2 Course Card -->
+      <a href="/calculus/index.html" class="card block bg-white rounded-2xl shadow-2xl overflow-hidden animate-in delay-2">
+        <div class="bg-gradient-to-br from-indigo-600 to-purple-700 p-8 text-white">
+          <div class="text-6xl mb-4">🧮</div>
+          <h2 class="text-3xl font-bold mb-2">Calculus 2 Formulas Pro</h2>
+          <p class="text-indigo-100 text-lg">חדו"א 2 - נוסחאות מקצועיות</p>
+        </div>
+        <div class="p-8">
+          <div class="space-y-3 mb-6">
+            <div class="flex items-center text-gray-700">
+              <span class="text-2xl mr-3">∫</span>
+              <span class="text-lg">60 נוסחאות חדו"א 2 עם LaTeX</span>
+            </div>
+            <div class="flex items-center text-gray-700">
+              <span class="text-2xl mr-3">🔢</span>
+              <span class="text-lg">רינדור מתמטי מושלם עם KaTeX</span>
+            </div>
+            <div class="flex items-center text-gray-700">
+              <span class="text-2xl mr-3">🎴</span>
+              <span class="text-lg">כרטיסיות: נושא מול נוסחה</span>
+            </div>
+            <div class="flex items-center text-gray-700">
+              <span class="text-2xl mr-3">🏆</span>
+              <span class="text-lg">מבחנים עם מעקב High Score</span>
+            </div>
+          </div>
+          <div class="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 text-center">
+            <p class="text-purple-800 font-bold text-lg">לחץ כאן להתחיל ללמוד →</p>
+          </div>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center mt-12 animate-in delay-3">
+      <p class="text-blue-100 text-lg">
+        💡 בחר קורס כדי להתחיל ללמוד עם כרטיסיות אינטראקטיביות ומבחנים
+      </p>
+      <p class="text-blue-200 text-sm mt-3">
+        © 2026 Study Portal - Built with React, KaTeX & Netlify
+      </p>
+    </div>
+
+  </div>
+</body>
+
+</html>

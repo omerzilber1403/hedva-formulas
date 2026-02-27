@@ -1,32 +1,26 @@
 import { getStore } from "@netlify/blobs";
 
 /**
- * Hedva Formulas Backend - Calculus 2 Learning App
+ * Enhanced Netlify Serverless Function for Calculus 2 Formulas Pro App
  * 
- * Expected Body for POST:
- * {
- *   "action": "register" | "login" | "sync" | "getAll",
- *   "name": "username",
- *   "pin": "1234" (for register/login),
- *   "statuses": {} (for sync),
- *   "highScore": 0 (for sync, optional),
- *   "quizzesTaken": 0 (for sync, optional)
- * }
+ * Supported Actions (via POST body):
+ * - "register": Create new user with username + PIN
+ * - "login": Authenticate user with username + PIN
+ * - "sync": Update user data (statuses, highScore, quizzesTaken)
+ * - "getAll": Retrieve all users (for testing/admin)
  * 
- * Data Structure:
+ * Data Structure per user:
  * {
- *   "username": {
- *     "name": "username",
- *     "pin": "1234",
- *     "statuses": {},
- *     "highScore": 0,
- *     "quizzesTaken": 0
- *   }
+ *   name: string,
+ *   pin: string,              // Store hashed PIN in production!
+ *   statuses: {},             // flashcard question statuses (red/yellow/green)
+ *   highScore: number,        // highest test score achieved
+ *   quizzesTaken: number      // total number of quizzes completed
  * }
  */
 
 export default async (req) => {
-    const store = getStore("hedva_formulas_users");
+    const store = getStore("quiz_profiles");
 
     const headers = {
         "Access-Control-Allow-Origin": "*",
@@ -35,24 +29,25 @@ export default async (req) => {
         "Content-Type": "application/json"
     };
 
-    // CORS preflight
+    // Handle CORS preflight
     if (req.method === "OPTIONS") {
         return new Response("OK", { headers });
     }
 
-    // GET: Return all users (WITHOUT pins, only user data)
+    // GET: Return all users (without PINs for security)
     if (req.method === "GET") {
         try {
             const users = await store.get("all_users", { type: "json" }) || {};
             
-            // Strip PINs and format response
+            // Strip PINs from response for security
             const safeUsers = {};
             for (const [username, userData] of Object.entries(users)) {
                 safeUsers[username] = {
                     name: userData.name,
-                    statuses: userData.statuses || {},
+                    statuses: userData.statuses,
                     highScore: userData.highScore || 0,
                     quizzesTaken: userData.quizzesTaken || 0
+                    // PIN intentionally omitted
                 };
             }
             
@@ -63,7 +58,7 @@ export default async (req) => {
         }
     }
 
-    // POST: Handle actions
+    // POST: Handle action-based routing
     if (req.method === "POST") {
         try {
             const body = await req.json();
@@ -76,7 +71,7 @@ export default async (req) => {
                 });
             }
 
-            // Load existing users
+            // Load existing users from blob storage
             const users = await store.get("all_users", { type: "json" }) || {};
 
             // ==================== REGISTER ====================
@@ -88,7 +83,7 @@ export default async (req) => {
                     });
                 }
 
-                // Check if user exists
+                // Check if user already exists
                 if (users[name]) {
                     return new Response(JSON.stringify({ error: "User already exists" }), { 
                         status: 409, 
@@ -96,10 +91,10 @@ export default async (req) => {
                     });
                 }
 
-                // Create new user
+                // Create new user with default values
                 users[name] = {
                     name,
-                    pin, // TODO: Hash in production!
+                    pin,  // NOTE: In production, hash this with bcrypt or similar!
                     statuses: {},
                     highScore: 0,
                     quizzesTaken: 0
@@ -136,7 +131,7 @@ export default async (req) => {
                     });
                 }
 
-                // Validate PIN
+                // Validate PIN (in production, use bcrypt.compare!)
                 if (users[name].pin !== pin) {
                     return new Response(JSON.stringify({ error: "Incorrect PIN" }), { 
                         status: 401, 
@@ -144,7 +139,7 @@ export default async (req) => {
                     });
                 }
 
-                // Successful login
+                // Successful login - return user data without PIN
                 return new Response(JSON.stringify({ 
                     success: true,
                     message: "Login successful",
@@ -174,7 +169,7 @@ export default async (req) => {
                     });
                 }
 
-                // Update user data
+                // Update user data (preserve PIN, only update provided fields)
                 if (statuses !== undefined) {
                     users[name].statuses = statuses;
                 }
@@ -191,6 +186,7 @@ export default async (req) => {
                     success: true,
                     message: "Data synced successfully",
                     user: {
+                        name: users[name].name,
                         statuses: users[name].statuses,
                         highScore: users[name].highScore,
                         quizzesTaken: users[name].quizzesTaken
@@ -204,9 +200,10 @@ export default async (req) => {
                 for (const [username, userData] of Object.entries(users)) {
                     safeUsers[username] = {
                         name: userData.name,
-                        statuses: userData.statuses || {},
+                        statuses: userData.statuses,
                         highScore: userData.highScore || 0,
                         quizzesTaken: userData.quizzesTaken || 0
+                        // PIN intentionally omitted
                     };
                 }
                 

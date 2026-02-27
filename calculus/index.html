@@ -250,8 +250,18 @@
     const syncCloudUsers = async () => { 
       if (isLocalFile()) return null;
       try { 
-        const r = await fetch('/api/users'); 
-        if (r.ok) return await r.json(); 
+        const r = await fetch('/api/users?course=calculus'); 
+        if (r.ok) {
+          const data = await r.json();
+          // Extract calculus course data for each user
+          const result = {};
+          for (const [username, userData] of Object.entries(data)) {
+            if (userData.calculus) {
+              result[username] = { name: username, ...userData.calculus };
+            }
+          }
+          return result;
+        }
       } catch (e) { 
         console.log('Cloud sync unavailable:', e);
       } 
@@ -264,7 +274,12 @@
         await fetch('/api/users', { 
           method: 'POST', 
           headers: { 'Content-Type': 'application/json' }, 
-          body: JSON.stringify({ name, ...data }) 
+          body: JSON.stringify({ 
+            action: 'sync',
+            course: 'calculus',
+            name, 
+            ...data 
+          }) 
         }); 
       } catch (e) {
         console.log('Cloud push failed:', e);
