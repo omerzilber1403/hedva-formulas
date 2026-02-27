@@ -1441,174 +1441,200 @@
       if (!currentUser) return <LoginScreen onLogin={handleLogin} />;
 
       const tabs = [
-        { key: 'flashcards', label: 'כרטיסים', icon: <IconCards /> },
-        { key: 'test', label: 'מבחן', icon: <IconTest /> },
-        { key: 'list', label: 'רשימה', icon: <IconList /> },
+        { key: 'flashcards', label: 'כרטיסיות', icon: <IconCards />, emoji: '🎴' },
+        { key: 'test', label: 'מבחן', icon: <IconTest />, emoji: '📝' },
+        { key: 'list', label: 'רשימה', icon: <IconList />, emoji: '📋' },
       ];
 
-      return (
-        <div className="min-h-screen gradient-bg relative">
-          {/* Premium Glassmorphism Header with Hamburger Menu */}
-          <div className="fixed top-0 left-0 right-0 z-30 glass-dark shadow-2xl">
-            <div className="max-w-lg md:max-w-3xl mx-auto px-5 py-4">
-              <div className="flex items-center justify-between">
-                {/* Left: Menu Button */}
-                <button 
-                  className="p-2 text-white hover:bg-white/10 rounded-xl transition-all active:scale-95"
-                  onClick={() => {
-                    const menu = document.getElementById('sidebar-menu');
-                    menu.classList.toggle('translate-x-full');
-                  }}
-                >
-                  <IconMenu />
-                </button>
-                
-                {/* Center: Logo & Title */}
-                <div className="text-center flex-1">
-                  <h1 className="text-lg font-black text-white flex items-center justify-center gap-2">
-                    <span className="text-2xl">∫</span> Calculus 2 Pro
+      // HomePage Component - כל הניווט והבחירות כאן
+      if (!mode || !selectedChapter || filter === null) {
+        return (
+          <div className="min-h-screen gradient-bg p-6">
+            {/* Header */}
+            <div className="max-w-2xl mx-auto">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h1 className="text-3xl font-black text-white flex items-center gap-2">
+                    <span className="text-4xl">∫</span> Calculus 2 Pro
                   </h1>
-                  <p className="text-xs text-blue-200/80">
-                    {counts.green}/{allCards.length} נלמדו
-                  </p>
+                  <p className="text-blue-200 text-sm mt-1">שלום {currentUser} 👋</p>
                 </div>
-                
-                {/* Right: User Badge */}
-                <div className="flex items-center gap-2 px-3 py-2 bg-white/10 rounded-xl border border-white/20">
-                  <IconUser />
-                  <span className="text-white text-sm font-semibold">{currentUser}</span>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={handleLogout}
+                    className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl transition-all active:scale-95 border border-white/20"
+                  >
+                    <IconLogout />
+                  </button>
                 </div>
               </div>
-              
-              {/* Filter Bar */}
-              <div className="mt-4">
-                <CombinedFilterBar
-                  filter={filter}
-                  setFilter={setFilter}
-                  counts={counts}
-                  chapters={chapters}
-                  selectedChapter={selectedChapter}
-                  setSelectedChapter={setSelectedChapter}
-                  allCards={allCards}
-                  topicToCategory={topicToCategory}
-                />
-              </div>
-            </div>
-          </div>
 
-          {/* Sidebar Menu Drawer */}
-          <div 
-            id="sidebar-menu"
-            className="fixed top-0 right-0 bottom-0 w-80 glass-dark shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-out overflow-y-auto"
-          >
-            <div className="p-6">
-              {/* Close Button */}
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-xl font-bold text-white">תפריט</h2>
-                <button 
-                  className="p-2 text-white hover:bg-white/10 rounded-xl transition-all"
-                  onClick={() => document.getElementById('sidebar-menu').classList.add('translate-x-full')}
-                >
-                  <IconClose />
-                </button>
-              </div>
-              
-              {/* User Stats Card */}
-              <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-400/30 rounded-2xl p-5 mb-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-white text-xl">
-                    <IconUser />
+              {/* Stats Card */}
+              <div className="glass rounded-3xl p-6 mb-8 border-2 border-white/20">
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-3xl font-black text-white">{counts.green}</div>
+                    <div className="text-blue-200 text-sm font-semibold">נלמדו</div>
                   </div>
                   <div>
-                    <div className="text-white font-bold text-lg">{currentUser}</div>
-                    <div className="text-blue-200 text-sm">חשבון פעיל</div>
+                    <div className="text-3xl font-black text-white">{userData.highScore || 0}%</div>
+                    <div className="text-blue-200 text-sm font-semibold">שיא</div>
                   </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white/10 rounded-xl p-3 text-center">
-                    <div className="text-2xl font-black text-white">{counts.green}</div>
-                    <div className="text-xs text-blue-200">נלמדו</div>
-                  </div>
-                  <div className="bg-white/10 rounded-xl p-3 text-center">
-                    <div className="text-2xl font-black text-white">{userData.highScore || 0}%</div>
-                    <div className="text-xs text-blue-200">שיא</div>
+                  <div>
+                    <div className="text-3xl font-black text-white">{allCards.length}</div>
+                    <div className="text-blue-200 text-sm font-semibold">נוסחאות</div>
                   </div>
                 </div>
               </div>
-              
-              {/* Menu Items */}
-              <div className="space-y-2">
-                <button 
-                  onClick={() => {
-                    document.getElementById('sidebar-menu').classList.add('translate-x-full');
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-white hover:bg-white/10 rounded-xl transition-all text-right"
-                >
-                  <IconStats />
-                  <span className="font-semibold">סטטיסטיקות</span>
-                </button>
-                
-                <button 
-                  onClick={() => {
-                    resetUser();
-                    document.getElementById('sidebar-menu').classList.add('translate-x-full');
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-white hover:bg-white/10 rounded-xl transition-all text-right"
-                >
+
+              {/* Chapter Selection */}
+              <div className="mb-8">
+                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                  📚 בחר פרק
+                </h2>
+                <div className="grid gap-3">
+                  {chapters.map(ch => {
+                    const count = allCards.filter(c => (topicToCategory[c.topic] || c.topic) === ch).length;
+                    const learned = allCards.filter(c => 
+                      (topicToCategory[c.topic] || c.topic) === ch && statuses[c.id] === 'green'
+                    ).length;
+                    return (
+                      <button
+                        key={ch}
+                        onClick={() => setSelectedChapter(ch)}
+                        className="glass rounded-2xl p-5 border-2 border-white/20 hover:border-blue-400 transition-all active:scale-98 text-right group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-black text-slate-900 mb-1">{ch}</h3>
+                            <p className="text-sm text-slate-600">{count} נוסחאות • {learned} נלמדו</p>
+                          </div>
+                          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                            {ch === 'אינטגרלים' ? '∫' : ch === 'גיאומטריה אנליטית' ? '📐' : '🔢'}
+                          </div>
+                        </div>
+                        <div className="mt-3 h-2 bg-slate-200 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all"
+                            style={{ width: `${(learned / count) * 100}%` }}
+                          />
+                        </div>
+                      </button>
+                    );
+                  })}
+                  <button
+                    onClick={() => setSelectedChapter('all')}
+                    className="glass rounded-2xl p-5 border-2 border-white/20 hover:border-blue-400 transition-all active:scale-98 text-right group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-black text-slate-900 mb-1">כל הנוסחאות</h3>
+                        <p className="text-sm text-slate-600">{allCards.length} נוסחאות • {counts.green} נלמדו</p>
+                      </div>
+                      <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                        🌟
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Filter Selection - מוצג רק אחרי בחירת פרק */}
+              {selectedChapter && (
+                <div className="mb-8">
+                  <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    🎯 בחר סטטוס
+                  </h2>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { key: 'all', label: 'הכל', emoji: '📚', count: counts.all },
+                      { key: 'unmarked', label: 'לא למדתי', emoji: '⚪', count: counts.unmarked },
+                      { key: 'red', label: 'לא יודע', emoji: '🔴', count: counts.red },
+                      { key: 'yellow', label: 'כמעט', emoji: '🟡', count: counts.yellow },
+                      { key: 'green', label: 'יודע', emoji: '🟢', count: counts.green },
+                    ].map(f => (
+                      <button
+                        key={f.key}
+                        onClick={() => setFilter(f.key)}
+                        className="glass rounded-2xl p-4 border-2 border-white/20 hover:border-blue-400 transition-all active:scale-98"
+                      >
+                        <div className="text-3xl mb-2">{f.emoji}</div>
+                        <div className="text-base font-black text-slate-900">{f.label}</div>
+                        <div className="text-sm text-slate-600">{f.count} נוסחאות</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Mode Selection - מוצג רק אחרי בחירת פרק וסטטוס */}
+              {selectedChapter && filter !== null && (
+                <div className="mb-8">
+                  <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    🎮 בחר מוד
+                  </h2>
+                  <div className="grid gap-4">
+                    {tabs.map(t => (
+                      <button
+                        key={t.key}
+                        onClick={() => setMode(t.key)}
+                        className="glass rounded-3xl p-6 border-2 border-white/20 hover:border-blue-400 transition-all active:scale-98 group"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl flex items-center justify-center text-4xl group-hover:scale-110 transition-transform shadow-xl">
+                            {t.emoji}
+                          </div>
+                          <div className="flex-1 text-right">
+                            <h3 className="text-2xl font-black text-slate-900 mb-1">{t.label}</h3>
+                            <p className="text-sm text-slate-600">
+                              {filteredCards.length} נוסחאות ב{t.label === 'כרטיסיות' ? 'מוד כרטיסיות' : t.label === 'מבחן' ? 'מוד מבחן' : 'מוד רשימה'}
+                            </p>
+                          </div>
+                          <div className="text-blue-500 text-2xl">←</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Reset Button */}
+              <button
+                onClick={resetUser}
+                className="w-full glass rounded-2xl p-4 border-2 border-red-200 hover:border-red-400 transition-all active:scale-98 text-center"
+              >
+                <div className="text-red-600 font-bold flex items-center justify-center gap-2">
                   <IconRefresh />
-                  <span className="font-semibold">איפוס התקדמות</span>
-                </button>
-                
-                <div className="h-px bg-white/20 my-4"></div>
-                
-                <button 
-                  onClick={() => {
-                    handleLogout();
-                    document.getElementById('sidebar-menu').classList.add('translate-x-full');
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-all text-right"
-                >
-                  <IconLogout />
-                  <span className="font-semibold">התנתק</span>
-                </button>
-              </div>
+                  איפוס כל ההתקדמות
+                </div>
+              </button>
             </div>
           </div>
+        );
+      }
 
-          {/* Overlay for menu */}
-          <div 
-            className="fixed inset-0 bg-black/50 z-40 opacity-0 pointer-events-none transition-opacity"
-            id="menu-overlay"
-          ></div>
-
-          {/* Main Content with Bottom Nav Spacing */}
-          <div className="max-w-lg md:max-w-3xl mx-auto px-4 pt-36 pb-24">
-            <div>
-              {mode === 'flashcards' && <FlashcardsMode cards={filteredCards} statuses={statuses} setStatus={setStatus} />}
-              {mode === 'test' && <TestMode cards={filteredCards} userData={userData} updateUserData={updateUserData} />}
-              {mode === 'list' && <ListMode cards={filteredCards} statuses={statuses} />}
-            </div>
+      // Mode View - נקי לגמרי עם רק כפתור חזור
+      return (
+        <div className="min-h-screen gradient-bg relative">
+          {/* Back Button - קטן ופשוט בפינה */}
+          <div className="fixed top-4 right-4 z-50">
+            <button 
+              onClick={() => {
+                setMode(null);
+                setSelectedChapter(null);
+                setFilter(null);
+              }}
+              className="glass rounded-2xl px-6 py-3 border-2 border-white/30 hover:border-white/50 transition-all active:scale-95 flex items-center gap-2 shadow-xl"
+            >
+              <span className="text-slate-800 font-bold">← חזור לדף הבית</span>
+            </button>
           </div>
 
-          {/* Premium Bottom Navigation - PILLAR 4 Mobile First */}
-          <div className="fixed bottom-0 left-0 right-0 z-30 glass border-t border-white/20 safe-area-bottom">
-            <div className="max-w-lg md:max-w-3xl mx-auto flex justify-around py-3 px-4">
-              {tabs.map(t => (
-                <button 
-                  key={t.key} 
-                  onClick={() => setMode(t.key)}
-                  className={`flex flex-col items-center justify-center gap-1 px-6 py-2 rounded-2xl transition-all min-w-[80px] min-h-[48px] ${
-                    mode === t.key 
-                      ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105' 
-                      : 'text-gray-600 hover:bg-gray-100/50 active:scale-95'
-                  }`}
-                >
-                  <div className={mode === t.key ? 'scale-110' : ''}>{t.icon}</div>
-                  <span className="text-xs font-bold">{t.label}</span>
-                </button>
-              ))}
-            </div>
+          {/* Clean Mode Content */}
+          <div className="max-w-lg md:max-w-3xl mx-auto px-4 pt-20 pb-10">
+            {mode === 'flashcards' && <FlashcardsMode cards={filteredCards} statuses={statuses} setStatus={setStatus} />}
+            {mode === 'test' && <TestMode cards={filteredCards} userData={userData} updateUserData={updateUserData} />}
+            {mode === 'list' && <ListMode cards={filteredCards} statuses={statuses} />}
           </div>
         </div>
       );
