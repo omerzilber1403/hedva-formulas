@@ -1,5 +1,5 @@
 // Hedva Formulas Service Worker - PWA Support
-const CACHE_VERSION = 2; // Increment this to force update
+const CACHE_VERSION = 3; // Increment this to force update
 const CACHE_NAME = `hedva-formulas-v${CACHE_VERSION}`;
 const urlsToCache = [
   '/calculus/index.html',

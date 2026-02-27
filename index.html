@@ -1332,9 +1332,9 @@
       const [currentUser, setCurrentUser] = useState(() => loadCurrent());
       const [users, setUsers] = useState(() => loadUsers());
       const [allCards] = useState(() => loadData());
-      const [filter, setFilter] = useState('all');
-      const [selectedChapter, setSelectedChapter] = useState('all');
-      const [mode, setMode] = useState('flashcards');
+      const [filter, setFilter] = useState(null);
+      const [selectedChapter, setSelectedChapter] = useState(null);
+      const [mode, setMode] = useState(null);
       const [syncing, setSyncing] = useState(false);
 
       useEffect(() => {
@@ -1399,14 +1399,19 @@
         });
       }, [currentUser]);
 
-      const handleLogin = name => setCurrentUser(name);
+      const handleLogin = name => {
+        setCurrentUser(name);
+        setFilter(null);
+        setSelectedChapter(null);
+        setMode(null);
+      };
       
       const handleLogout = () => {
         clearCurrent();
         setCurrentUser(null);
-        setFilter('all');
-        setSelectedChapter('all');
-        setMode('flashcards');
+        setFilter(null);
+        setSelectedChapter(null);
+        setMode(null);
       };
 
       const resetUser = () => {
