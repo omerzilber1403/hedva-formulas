@@ -273,17 +273,11 @@
     const syncCloudUsers = async () => { 
       if (isLocalFile()) return null;
       try { 
-        const r = await fetch('/api/users?course=calculus'); 
+        const r = await fetch('/api/users'); 
         if (r.ok) {
           const data = await r.json();
-          // Extract calculus course data for each user
-          const result = {};
-          for (const [username, userData] of Object.entries(data)) {
-            if (userData.calculus) {
-              result[username] = { name: username, ...userData.calculus };
-            }
-          }
-          return result;
+          // Backend now returns data directly without course nesting
+          return data;
         }
       } catch (e) { 
         console.log('Cloud sync unavailable:', e);
@@ -299,7 +293,6 @@
           headers: { 'Content-Type': 'application/json' }, 
           body: JSON.stringify({ 
             action: 'sync',
-            course: 'calculus',
             name, 
             ...data 
           }) 
@@ -341,11 +334,13 @@
 
       const existingNames = Object.keys(users);
 
-      const handleLogin = () => {
+      const handleLogin = async () => {
         if (!name.trim()) {
           setError('הכנס שם משתמש');
           return;
         }
+        
+        setError(''); // Clear previous errors
         
         if (isCreating) {
           // Create new account
@@ -357,25 +352,128 @@
             setError('משתמש קיים כבר, התחבר או בחר שם אחר');
             return;
           }
-          const newUsers = setUserData(users, name.trim(), { pin, statuses: {}, highScore: 0, quizzesTaken: 0 });
-          saveUsers(newUsers);
-          setUsersState(newUsers);
-          pushCloudUser(name.trim(), { pin, statuses: {}, highScore: 0, quizzesTaken: 0 });
-          saveCurrent(name.trim());
-          onLogin(name.trim());
+          
+          // Register with cloud first
+          if (!isLocalFile()) {
+            try {
+              const response = await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'register',
+                  name: name.trim(),
+                  pin: pin
+                })
+              });
+              
+              const result = await response.json();
+              
+              if (!response.ok) {
+                setError(result.error || 'שגיאה ביצירת משתמש');
+                return;
+              }
+              
+              // Save to local storage
+              const newUserData = {
+                name: name.trim(),
+                pin: pin,
+                statuses: result.user.statuses || {},
+                highScore: result.user.highScore || 0,
+                quizzesTaken: result.user.quizzesTaken || 0
+              };
+              const newUsers = setUserData(users, name.trim(), newUserData);
+              saveUsers(newUsers);
+              setUsersState(newUsers);
+              saveCurrent(name.trim());
+              onLogin(name.trim());
+            } catch (e) {
+              console.error('Registration failed:', e);
+              setError('שגיאה בחיבור לשרת');
+            }
+          } else {
+            // Local file mode - save locally only
+            const newUsers = setUserData(users, name.trim(), { pin, statuses: {}, highScore: 0, quizzesTaken: 0 });
+            saveUsers(newUsers);
+            setUsersState(newUsers);
+            saveCurrent(name.trim());
+            onLogin(name.trim());
+          }
         } else {
           // Login existing
-          const userData = users[name.trim()];
-          if (!userData) {
-            setError('משתמש לא נמצא');
-            return;
+          
+          // Try cloud login first
+          if (!isLocalFile()) {
+            try {
+              const response = await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'login',
+                  name: name.trim(),
+                  pin: pin
+                })
+              });
+              
+              const result = await response.json();
+              
+              if (!response.ok) {
+                // If user not found in cloud, try local
+                const userData = users[name.trim()];
+                if (!userData) {
+                  setError('משתמש לא נמצא');
+                  return;
+                }
+                if (userData.pin && userData.pin !== pin) {
+                  setError('PIN שגוי');
+                  return;
+                }
+                saveCurrent(name.trim());
+                onLogin(name.trim());
+                return;
+              }
+              
+              // Save cloud data to local storage
+              const userData = {
+                name: result.user.name,
+                pin: pin,
+                statuses: result.user.statuses || {},
+                highScore: result.user.highScore || 0,
+                quizzesTaken: result.user.quizzesTaken || 0
+              };
+              const updatedUsers = setUserData(users, name.trim(), userData);
+              saveUsers(updatedUsers);
+              setUsersState(updatedUsers);
+              saveCurrent(name.trim());
+              onLogin(name.trim());
+            } catch (e) {
+              console.error('Cloud login failed:', e);
+              // Fallback to local login
+              const userData = users[name.trim()];
+              if (!userData) {
+                setError('משתמש לא נמצא');
+                return;
+              }
+              if (userData.pin && userData.pin !== pin) {
+                setError('PIN שגוי');
+                return;
+              }
+              saveCurrent(name.trim());
+              onLogin(name.trim());
+            }
+          } else {
+            // Local file mode - login from localStorage
+            const userData = users[name.trim()];
+            if (!userData) {
+              setError('משתמש לא נמצא');
+              return;
+            }
+            if (userData.pin && userData.pin !== pin) {
+              setError('PIN שגוי');
+              return;
+            }
+            saveCurrent(name.trim());
+            onLogin(name.trim());
           }
-          if (userData.pin && userData.pin !== pin) {
-            setError('PIN שגוי');
-            return;
-          }
-          saveCurrent(name.trim());
-          onLogin(name.trim());
         }
       };
 
