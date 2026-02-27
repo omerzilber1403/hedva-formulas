@@ -576,18 +576,61 @@
     };
 
     // ── Filter Bar ──────────────────────────────────────────────────────────────
-    const FilterBar = ({ filter, setFilter, counts, allCards }) => {
-      const tabs = [
-        { key: 'all', label: 'הכל', emoji: '📚', color: 'bg-indigo-600 text-white', inactive: 'bg-white text-slate-600 border border-slate-200' },
-        { key: 'red', label: 'לא יודע', emoji: '🔴', color: 'bg-red-500 text-white', inactive: 'bg-white text-red-500 border border-red-200' },
-        { key: 'yellow', label: 'כמעט', emoji: '🟡', color: 'bg-amber-400 text-white', inactive: 'bg-white text-amber-600 border border-amber-200' },
-        { key: 'green', label: 'יודע', emoji: '🟢', color: 'bg-emerald-500 text-white', inactive: 'bg-white text-emerald-600 border border-emerald-200' },
-        { key: 'unmarked', label: 'לא מסומן', emoji: '⚪', color: 'bg-slate-600 text-white', inactive: 'bg-white text-slate-600 border border-slate-200' },
+    // ── Combined Filter Bar (Chapters + Status in one row) ────────────────────
+    const CombinedFilterBar = ({ 
+      filter, setFilter, counts, 
+      chapters, selectedChapter, setSelectedChapter, 
+      allCards, topicToCategory 
+    }) => {
+      const chapterCounts = useMemo(() => {
+        const chapterCounts = {};
+        chapters.forEach(ch => {
+          chapterCounts[ch] = allCards.filter(c => (topicToCategory[c.topic] || c.topic) === ch).length;
+        });
+        return chapterCounts;
+      }, [chapters, allCards, topicToCategory]);
+
+      const statusTabs = [
+        { key: 'red', emoji: '🔴', color: 'bg-red-500 text-white', inactive: 'bg-white/10 text-white border-white/20' },
+        { key: 'yellow', emoji: '🟡', color: 'bg-amber-400 text-white', inactive: 'bg-white/10 text-white border-white/20' },
+        { key: 'green', emoji: '🟢', color: 'bg-emerald-500 text-white', inactive: 'bg-white/10 text-white border-white/20' },
       ];
-      
+
       return (
-        <div className="flex gap-2 overflow-x-auto pb-1 no-select">
-          {tabs.map(t => {
+        <div className="flex gap-2 overflow-x-auto pb-2 no-select">
+          {/* Chapter buttons */}
+          <button
+            onClick={() => setSelectedChapter('all')}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border-2 ${
+              selectedChapter === 'all'
+                ? 'bg-white text-indigo-600 border-white shadow-lg'
+                : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+            }`}
+          >
+            📚 הכל ({allCards.length})
+          </button>
+          {chapters.map(ch => {
+            const active = selectedChapter === ch;
+            return (
+              <button
+                key={ch}
+                onClick={() => setSelectedChapter(active ? 'all' : ch)}
+                className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border-2 whitespace-nowrap ${
+                  active
+                    ? 'bg-white text-indigo-600 border-white shadow-lg'
+                    : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+                }`}
+              >
+                {ch} ({chapterCounts[ch] || 0})
+              </button>
+            );
+          })}
+          
+          {/* Divider */}
+          <div className="flex-shrink-0 w-px bg-white/20 mx-1"></div>
+          
+          {/* Status buttons */}
+          {statusTabs.map(t => {
             const count = counts[t.key];
             const active = filter === t.key;
             
@@ -595,57 +638,14 @@
               <button 
                 key={t.key} 
                 onClick={() => setFilter(active ? 'all' : t.key)}
-                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${active ? t.color : t.inactive}`}
+                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border-2 ${
+                  active ? t.color + ' border-white' : t.inactive + ' hover:bg-white/20'
+                }`}
               >
-                {t.emoji} {t.label} <span className="ml-1 opacity-75">({count ?? 0})</span>
+                {t.emoji} {count ?? 0}
               </button>
             );
           })}
-        </div>
-      );
-    };
-
-    // ── Chapter Filter ──────────────────────────────────────────────────────────
-    const ChapterFilter = ({ chapters, selectedChapter, setSelectedChapter, allCards, topicToCategory }) => {
-      const chapterCounts = useMemo(() => {
-        const counts = { all: allCards.length };
-        chapters.forEach(ch => {
-          counts[ch] = allCards.filter(c => (topicToCategory[c.topic] || c.topic) === ch).length;
-        });
-        return counts;
-      }, [chapters, allCards, topicToCategory]);
-
-      return (
-        <div className="space-y-2">
-          <div className="text-xs font-bold text-white/70 uppercase tracking-wider">📖 פרקים</div>
-          <div className="flex gap-2 overflow-x-auto pb-2 no-select">
-            <button
-              onClick={() => setSelectedChapter('all')}
-              className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-all border-2 ${
-                selectedChapter === 'all'
-                  ? 'bg-white text-indigo-600 border-white shadow-lg'
-                  : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
-              }`}
-            >
-              📚 כל הנוסחאות ({chapterCounts.all})
-            </button>
-            {chapters.map(ch => {
-              const active = selectedChapter === ch;
-              return (
-                <button
-                  key={ch}
-                  onClick={() => setSelectedChapter(active ? 'all' : ch)}
-                  className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-all border-2 whitespace-nowrap ${
-                    active
-                      ? 'bg-white text-indigo-600 border-white shadow-lg'
-                      : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
-                  }`}
-                >
-                  {ch} ({chapterCounts[ch] || 0})
-                </button>
-              );
-            })}
-          </div>
         </div>
       );
     };
@@ -1370,18 +1370,15 @@
                   </button>
                 </div>
               </div>
-              <ChapterFilter
+              <CombinedFilterBar
+                filter={filter}
+                setFilter={setFilter}
+                counts={counts}
                 chapters={chapters}
                 selectedChapter={selectedChapter}
                 setSelectedChapter={setSelectedChapter}
                 allCards={allCards}
                 topicToCategory={topicToCategory}
-              />
-              <FilterBar 
-                filter={filter} 
-                setFilter={setFilter} 
-                counts={counts}
-                allCards={allCards}
               />
             </div>
           </div>
