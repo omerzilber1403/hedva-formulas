@@ -1215,16 +1215,7 @@
       const [filter, setFilter] = useState('all');
       const [selectedChapter, setSelectedChapter] = useState('all');
       const [mode, setMode] = useState('flashcards');
-      const [showNav, setShowNav] = useState(true);
       const [syncing, setSyncing] = useState(false);
-
-      useEffect(() => {
-        const handleScroll = () => {
-          setShowNav(window.scrollY < 50);
-        };
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
-      }, []);
 
       useEffect(() => {
         setSyncing(true);
@@ -1338,10 +1329,8 @@
       return (
         <div className="min-h-screen gradient-bg">
           {/* Header */}
-          <div className={`fixed top-0 left-0 right-0 z-30 bg-indigo-900/95 backdrop-blur border-b border-white/10 shadow-lg transition-transform duration-300 ${
-            showNav ? 'translate-y-0' : '-translate-y-full'
-          }`}>
-            <div className="max-w-lg md:max-w-3xl mx-auto px-4 pt-3 pb-3 flex flex-col gap-3">
+          <div className="fixed top-0 left-0 right-0 z-30 bg-indigo-900/95 backdrop-blur border-b border-white/10 shadow-lg">
+            <div className="max-w-lg md:max-w-3xl mx-auto px-4 py-3 flex flex-col gap-2.5">
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-xl font-black text-white flex items-center gap-2">
@@ -1383,7 +1372,7 @@
             </div>
           </div>
 
-          <div className="max-w-lg md:max-w-3xl mx-auto px-4 pt-36">
+          <div className="max-w-lg md:max-w-3xl mx-auto px-4 pt-40">
             {/* Mode tabs */}
             <div className="flex bg-white/10 backdrop-blur rounded-2xl p-1 shadow-lg border border-white/20 mb-5">
               {tabs.map(t => (
